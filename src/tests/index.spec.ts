@@ -134,12 +134,6 @@ describe('Blocknum query page (/{chain}/blocknum?t=<timestamp>)', () => {
 });
 
 describe('Current blocknum query page (/{chain}/current)', () => {
-    let valid_chain;
-
-    beforeAll(() => {
-        valid_chain = supportedChains()[0];
-    });
-
     it('Should fail on non-valid chains', async () => {
         const res = await app.request('/dummy/blocknum');
         expect(res.status).toBe(400);

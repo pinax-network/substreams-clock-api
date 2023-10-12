@@ -26,6 +26,7 @@ describe('Chains page (/chains)', () => {
         const res = await app.request('/chains');
         const json = await res.json();
 
+        expect(json).toHaveProperty('supportedChains');
         expect(json.supportedChains).toEqual(supportedChains());
     });
 });

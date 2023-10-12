@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
 import { banner } from "./banner";
-import { supportedChains, timestampQuery, blocknumQuery } from "./queries";
+import { supportedChains, timestampQuery, blocknumQuery, currentBlocknumQuery } from "./queries";
 
 const app = new Hono();
 
@@ -39,6 +39,16 @@ app.get('/:chain/blocknum', async (c) => {
         });
 
     return c.json(await blocknumQuery(chain, timestamp));
+});
+app.get('/:chain/current', async (c) => {
+    const chain = c.req.param('chain');
+
+    if (!supportedChains().includes(chain))
+        throw new HTTPException(400, {
+            message: `The blockchain specified is currently not supported. See /chains for a list of supported blockchains.`
+        });
+
+    return c.json(await currentBlocknumQuery(chain));
 });
 
 app.onError((err, c) => {

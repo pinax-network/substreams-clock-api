@@ -21,6 +21,9 @@ jobs:
         run: |
           npm run test
         env:
-          HOSTNAME: localhost
-          PORT: 8080
-
+          HOSTNAME: ${{ vars.HOSTNAME }}
+          PORT: ${{ vars.PORT }}
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.USERNAME }}
+          DB_PASSWORD: ''

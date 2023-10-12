@@ -131,3 +131,6 @@ dist
 
 # Sublime Text
 *.sublime*
+
+# Local clickhouse DB
+clickhouse/

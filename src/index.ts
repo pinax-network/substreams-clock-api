@@ -1,10 +1,15 @@
 import { Hono } from 'hono';
+import { logger } from 'hono/logger';
 import { HTTPException } from 'hono/http-exception';
 
+import config from "./config";
 import { banner } from "./banner";
 import { supportedChains, timestampQuery, blocknumQuery, currentBlocknumQuery } from "./queries";
 
 const app = new Hono();
+
+if ( config.NODE_ENV !== "production" )
+    app.use('*', logger());
 
 app.get('/', (c) => c.text(banner()));
 app.get('/chains', (c) => c.json({ supportedChains: supportedChains() }));

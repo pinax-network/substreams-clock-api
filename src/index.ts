@@ -25,7 +25,7 @@ app.use('/:chain/*', async (c, next) => {
 });
 app.get('/:chain/timestamp', async (c) => {
     const chain = c.req.param('chain');
-    let blocknum = c.req.query('n');
+    let blocknum = c.req.query('block_number'); // TODO: Support for array of block numbers
 
     if (!(blocknum && (blocknum = parseInt(blocknum)) && blocknum > 0)) // TODO: Look into Validation (https://hono.dev/guides/validation)
         throw new HTTPException(400, {
@@ -36,7 +36,7 @@ app.get('/:chain/timestamp', async (c) => {
 });
 app.get('/:chain/blocknum', async (c) => {
     const chain = c.req.param('chain');
-    let timestamp = c.req.query('t');
+    let timestamp = c.req.query('timestamp'); // TODO: Support for array of timestamps
 
     if (!timestamp || !(timestamp = isNaN(timestamp) ? new Date(timestamp) : new Date(parseInt(timestamp))))
         throw new HTTPException(400, {

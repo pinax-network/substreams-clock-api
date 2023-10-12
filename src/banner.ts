@@ -18,8 +18,8 @@ export function banner()  {
 
     HTTP GET
         /chains
-        /{chain}/timestamp?n=<block number> (Positive integer)
-        /{chain}/blocknum?t=<timestamp> (UNIX or date)
+        /{chain}/timestamp?block_number=<positive integer>
+        /{chain}/blocknum?timestamp=<UNIX or date>
         /{chain}/current
         /{chain}/final
 

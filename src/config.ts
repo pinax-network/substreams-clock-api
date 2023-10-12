@@ -3,11 +3,11 @@ import { Value } from "@sinclair/typebox/value";
 import "dotenv/config";
 
 const EnvSchema = Type.Object({
-    PORT: Type.String({ default: "8080" }),
-    DB_HOST: Type.String({ default: "http://localhost:8123" }),
-    DB_NAME: Type.String({ default: "demo" }),
-    DB_USERNAME: Type.String({ default: "default" }),
-    DB_PASSWORD: Type.String({ default: "" }),
+    PORT: Type.String(),
+    DB_HOST: Type.String(),
+    DB_NAME: Type.String(),
+    DB_USERNAME: Type.String(),
+    DB_PASSWORD: Type.String(),
 });
 
 export function decode(schema = EnvSchema) {

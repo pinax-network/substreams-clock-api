@@ -8,16 +8,21 @@ const app = new Hono();
 
 app.get('/', (c) => c.text(banner()));
 app.get('/chains', (c) => c.json({ supportedChains: supportedChains() }));
-app.get('/:chain/timestamp', async (c) => {
+app.use('/:chain/*', async (c, next) => {
     const chain = c.req.param('chain');
-    let blocknum = c.req.query('n');
 
     if (!supportedChains().includes(chain))
         throw new HTTPException(400, {
             message: `The blockchain specified is currently not supported. See /chains for a list of supported blockchains.`
         });
 
-    if (!(blocknum && (blocknum = parseInt(blocknum)) && blocknum > 0))
+    await next();
+});
+app.get('/:chain/timestamp', async (c) => {
+    const chain = c.req.param('chain');
+    let blocknum = c.req.query('n');
+
+    if (!(blocknum && (blocknum = parseInt(blocknum)) && blocknum > 0)) // TODO: Look into Validation (https://hono.dev/guides/validation)
         throw new HTTPException(400, {
             message: `The block number is missing or is not a valid block number (positive integer).`
         });
@@ -28,11 +33,6 @@ app.get('/:chain/blocknum', async (c) => {
     const chain = c.req.param('chain');
     let timestamp = c.req.query('t');
 
-    if (!supportedChains().includes(chain))
-        throw new HTTPException(400, {
-            message: `The blockchain specified is currently not supported. See /chains for a list of supported blockchains.`
-        });
-
     if (!timestamp || !(timestamp = isNaN(timestamp) ? new Date(timestamp) : new Date(parseInt(timestamp))))
         throw new HTTPException(400, {
             message: `The timestamp is missing or is not a valid timestamp (UNIX or date).`
@@ -42,11 +42,6 @@ app.get('/:chain/blocknum', async (c) => {
 });
 app.get('/:chain/current', async (c) => {
     const chain = c.req.param('chain');
-
-    if (!supportedChains().includes(chain))
-        throw new HTTPException(400, {
-            message: `The blockchain specified is currently not supported. See /chains for a list of supported blockchains.`
-        });
 
     return c.json(await currentBlocknumQuery(chain));
 });

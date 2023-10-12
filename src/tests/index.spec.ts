@@ -133,9 +133,9 @@ describe('Blocknum query page (/{chain}/blocknum?t=<timestamp>)', () => {
     });
 });
 
-describe('Current blocknum query page (/{chain}/current)', () => {
+describe.each(['current'/*, 'final'*/])('Single blocknum query page (/{chain}/%s)', (query_type: string) => {
     it('Should fail on non-valid chains', async () => {
-        const res = await app.request('/dummy/blocknum');
+        const res = await app.request(`/dummy/${query_type}`);
         expect(res.status).toBe(400);
 
         const json = await res.json();
@@ -144,7 +144,7 @@ describe('Current blocknum query page (/{chain}/current)', () => {
 
     if (dbIsUp) { // Need to use explicit `if` as `it.if().each()('xxx')` is not defined
         it.each(supportedChains())('Should return a single value for each chain: %s', async (chain: string) => {
-            const res = await app.request(`/${chain}/current`);
+            const res = await app.request(`/${chain}/${query_type}`);
             expect(res.status).toBe(200);
 
             const json = await res.json();
@@ -155,7 +155,7 @@ describe('Current blocknum query page (/{chain}/current)', () => {
         });
     } else {
         it.each(supportedChains())('Should fail on database connection error for each chain: %s', async (chain: string) => {
-            const res = await app.request(`/${chain}/current`);
+            const res = await app.request(`/${chain}/${query_type}`);
             expect(res.status).toBe(500);
 
             const json = await res.json();

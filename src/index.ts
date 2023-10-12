@@ -4,7 +4,7 @@ import { HTTPException } from 'hono/http-exception';
 
 import config from "./config";
 import { banner } from "./banner";
-import { supportedChains, timestampQuery, blocknumQuery, currentBlocknumQuery } from "./queries";
+import { supportedChains, timestampQuery, blocknumQuery, currentBlocknumQuery, finalBlocknumQuery } from "./queries";
 
 const app = new Hono();
 
@@ -49,6 +49,11 @@ app.get('/:chain/current', async (c) => {
     const chain = c.req.param('chain');
 
     return c.json(await currentBlocknumQuery(chain));
+});
+app.get('/:chain/final', async (c) => {
+    const chain = c.req.param('chain');
+
+    return c.json(await finalBlocknumQuery(chain));
 });
 
 app.onError((err, c) => {

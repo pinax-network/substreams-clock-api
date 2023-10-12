@@ -29,6 +29,13 @@ export async function currentBlocknumQuery(blockchain: string) {
     return await makeQuery(query);
 }
 
+export async function finalBlocknumQuery(blockchain: string) {
+    /*const query = `SELECT MAX(blocknum) FROM ${config.DB_NAME} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
+
+    return await makeQuery(query);*/
+    return { todo: 'Not Implemented', data: [[null]] };
+}
+
 export function supportedChains() {
     return ['EOS', 'ETH', 'UX', 'WAX'];
 }

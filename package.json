@@ -5,14 +5,14 @@
   "license": "MIT",
   "authors": [
     {
-      "name" : "Etienne Donneger",
-      "email" : "etienne@pinax.network",
-      "url" : "https://github.com/Krow10"
+      "name": "Etienne Donneger",
+      "email": "etienne@pinax.network",
+      "url": "https://github.com/Krow10"
     },
     {
-      "name" : "Denis Carriere",
-      "email" : "denis@pinax.network",
-      "url" : "https://github.com/DenisCarriere/"
+      "name": "Denis Carriere",
+      "email": "denis@pinax.network",
+      "url": "https://github.com/DenisCarriere/"
     }
   ],
   "scripts": {
@@ -20,6 +20,7 @@
     "test": "bun test **/*.spec.ts --coverage"
   },
   "dependencies": {
+    "@clickhouse/client": "^0.2.3",
     "hono": "^3.7.2"
   },
   "devDependencies": {

@@ -6,7 +6,4 @@ const app = new Hono();
 
 app.get('/', (c) => c.text(banner()));
 
-export default {
-    port: process.env.PORT,
-    fetch: app.fetch,
-};
+export default app;

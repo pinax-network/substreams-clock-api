@@ -20,3 +20,7 @@ jobs:
       - name: 'Test'
         run: |
           npm run test
+        env:
+          HOSTNAME: localhost
+          PORT: 8080
+

@@ -1,0 +1,28 @@
+{
+  "description": "Timestamps <> Block numbers conversion for your favorite chains",
+  "version": "0.0.1",
+  "homepage": "https://github.com/pinax-network/substreams-clock-api",
+  "license": "MIT",
+  "authors": [
+    {
+      "name" : "Etienne Donneger",
+      "email" : "etienne@pinax.network",
+      "url" : "https://github.com/Krow10"
+    },
+    {
+      "name" : "Denis Carriere",
+      "email" : "denis@pinax.network",
+      "url" : "https://github.com/DenisCarriere/"
+    }
+  ],
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "test": "bun test test/*.ts"
+  },
+  "dependencies": {
+    "hono": "^3.7.2"
+  },
+  "devDependencies": {
+    "bun-types": "^0.6.2"
+  }
+}

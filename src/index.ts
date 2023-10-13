@@ -1,24 +1,39 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { serveStatic } from 'hono/bun'
 import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 
 import * as routes from './routes';
 import config from "./config";
 import { banner } from "./banner";
-import { supportedChains, timestampQuery, blocknumQuery, currentBlocknumQuery, finalBlocknumQuery } from "./queries";
+import { supportedChainsQuery, timestampQuery, blocknumQuery, currentBlocknumQuery, finalBlocknumQuery } from "./queries";
 
 const app = new OpenAPIHono();
 
 if ( config.NODE_ENV !== "production" )
     app.use('*', logger());
 
+app.use('/static/*', serveStatic({ root: './' }))
+
 // The OpenAPI documentation will be available at /doc
-app.doc31('/doc', {
-    openapi: '3.1.0',
+app.doc('/doc', {
+    openapi: '3.0.0',
     info: {
         version: '0.0.1',
         title: 'Clock API',
     },
+});
+
+app.onError((err, c) => {
+    let error_message = `${err}`;
+    let error_code = 500;
+
+    if (err instanceof HTTPException){
+        error_message = err.message;
+        error_code = err.status;
+    }
+
+    return c.json({ error_message }, error_code);
 });
 
 app.openapi(routes.indexRoute, (c) => c.text(banner()));
@@ -41,7 +56,7 @@ app.openapi(routes.healthCheckRoute, async (c) => {
     return c.json(await dbStatus.json());
 });
 
-app.openapi(routes.supportedChainsRoute, (c) => c.json({ supportedChains: supportedChains() }));
+app.openapi(routes.supportedChainsRoute, async (c) => c.json({ supportedChains: await supportedChainsQuery() }));
 
 app.openapi(routes.timestampQueryRoute, async (c) => {
     const { chain } = c.req.valid('param');
@@ -67,18 +82,6 @@ app.openapi(routes.finalBlocknumQueryRoute, async (c) => {
     const { chain } = c.req.valid('param');
 
     return c.json(await finalBlocknumQuery(chain));
-});
-
-app.onError((err, c) => {
-    let error_message = `${err}`;
-    let error_code = 500;
-
-    if (err instanceof HTTPException){
-        error_message = err.message;
-        error_code = err.status;
-    }
-
-    return c.json({ error_message }, error_code);
 });
 
 export default app;

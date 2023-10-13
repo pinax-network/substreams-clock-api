@@ -1,6 +1,8 @@
+import { z } from '@hono/zod-openapi';
 import { HTTPException } from 'hono/http-exception';
 
 import config from './config';
+import { BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema} from './schemas';
 
 async function makeQuery(query: string) {
     const response = await fetch(`${config.DB_HOST}/?default_format=JSONCompact`, {
@@ -19,38 +21,63 @@ async function makeQuery(query: string) {
     try {
         json = JSON.parse(body);
     } catch {
-        json = { db_error_message: body };
+        throw new HTTPException(500, {
+            message: `Error parsing JSON from DB response: ${body} -- Check /health for API status.`
+        });
     }
 
+    // TODO: Create ClickhouseDBSchema and validate data beforehand
     return json;
 }
 
 export async function timestampQuery(blockchain: string, blocknum: number) {
     const query = `SELECT timestamp FROM ${config.DB_NAME} WHERE (blockchain == '${blockchain}') AND (blocknum == ${blocknum})`; // TODO: Replace with IN clause
+    const json = await makeQuery(query);
 
-    return await makeQuery(query);
+    return {
+        chain: blockchain,
+        block_number: blocknum,
+        timestamp: json.data.flat()[0]
+    } as z.infer<typeof BlocktimeQueryResponseSchema>;
 }
 
 export async function blocknumQuery(blockchain: string, timestamp: Date) {
     const query = `SELECT blocknum FROM ${config.DB_NAME} WHERE (blockchain == '${blockchain}') AND (timestamp == '\
 ${timestamp.toISOString().replace('T', ' ').substring(0, 19)}')`; // TODO: Find closest instead of matching timestamp or another route ?
+    const json = await makeQuery(query);
 
-    return await makeQuery(query);
+    return {
+        chain: blockchain,
+        block_number: json.data.flat()[0],
+        timestamp
+    } as z.infer<typeof BlocktimeQueryResponseSchema>;
 }
 
 export async function currentBlocknumQuery(blockchain: string) {
     const query = `SELECT MAX(blocknum) FROM ${config.DB_NAME} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
+    const json = await makeQuery(query);
 
-    return await makeQuery(query);
+    return {
+        chain: blockchain,
+        block_number: json.data.flat()[0],
+    } as z.infer<typeof SingleBlocknumQueryResponseSchema>;
 }
 
 export async function finalBlocknumQuery(blockchain: string) {
     /*const query = `SELECT MAX(blocknum) FROM ${config.DB_NAME} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
+    const json = await makeQuery(query);
 
-    return await makeQuery(query);*/
+    return {
+        chain: blockchain,
+        block_number: json.data[0],
+    } as z.infer<typeof SingleBlocknumQueryResponseSchema>;
+    */
     return { todo: 'Not Implemented', data: [[null]] };
 }
 
-export function supportedChains() {
-    return ['EOS', 'ETH', 'UX', 'WAX'];
+export async function supportedChainsQuery() {
+    const query = `SELECT DISTINCT blockchain FROM ${config.DB_NAME}`;
+    const json = await makeQuery(query);
+
+    return json.data.map(a => a[0]);
 }

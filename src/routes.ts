@@ -102,10 +102,10 @@ export const supportedChainsRoute = createRoute({
         200: {
             content: {
                 'application/json': {
-                    schema: schemas.BlockchainSchema,
+                    schema: schemas.SupportedChainsQueryResponseSchema,
                 },
             },
-            description: 'Health check service.',
+            description: 'Fetch supported chains from the Clickhouse DB.',
         },
     },
 });

@@ -3,10 +3,10 @@ import { describe, expect, it, beforeAll } from 'bun:test';
 import app from '../index';
 import config from '../config';
 import { banner } from "../banner";
-import { supportedChains, timestampQuery } from "../queries";
+import { supportedChainsQuery, timestampQuery } from "../queries";
+import { BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema} from '../schemas';
 
-const dbIsUp = (await fetch(`${config.DB_HOST}/ping`).catch((error) => {}))?.status == 200;
-console.info(`Database is ${dbIsUp ? '' : 'not '}running !`);
+const supportedChains = await supportedChainsQuery();
 
 describe('Index page (/)', () => {
     it('Should return 200 Response', async () => {
@@ -31,21 +31,12 @@ describe('Chains page (/chains)', () => {
         const json = await res.json();
 
         expect(json).toHaveProperty('supportedChains');
-        expect(json.supportedChains).toEqual(supportedChains());
+        expect(json.supportedChains).toEqual(supportedChains);
     });
 });
 
 describe('Health page (/health)', () => {
-    it.skipIf(dbIsUp)('Should fail on database connection error', async () => {
-        const res = await app.request('/health');
-        expect(res.status).toBe(503);
-
-        const json = await res.json();
-        expect(json).toHaveProperty('db_status');
-        expect(json.db_status).toContain('ConnectionRefused');
-    });
-
-    it.if(dbIsUp)('Should return 200 Response', async () => {
+    it('Should return 200 Response', async () => {
         const res = await app.request('/health');
         expect(res.status).toBe(200);
 
@@ -60,7 +51,7 @@ describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)'
     let valid_blocknum;
 
     beforeAll(() => {
-        valid_chain = supportedChains()[0];
+        valid_chain = supportedChains[0];
         valid_blocknum = 1337;
     });
 
@@ -91,20 +82,12 @@ describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)'
         expect(json.error.issues[0].code).toBe('too_small');
     });
 
-    it.skipIf(dbIsUp)('Should fail on database connection error', async () => {
-        const res = await app.request(`/${valid_chain}/timestamp?block_number=${valid_blocknum}`);
-        expect(res.status).toBe(503);
-
-        const json = await res.json();
-        expect(json.error_message).toContain('ConnectionRefused');
-    });
-
-    it.if(dbIsUp)('Should return 200 Response on valid input', async () => {
+    it('Should return 200 Response on valid input', async () => {
         const res = await app.request(`/${valid_chain}/timestamp?block_number=${valid_blocknum}`);
         expect(res.status).toBe(200);
 
         const json = await res.json();
-        expect(json).toHaveProperty('data');
+        expect(BlocktimeQueryResponseSchema.safeParse(json).success).toBe(true);
     });
 });
 
@@ -113,7 +96,7 @@ describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => 
     let valid_timestamp;
 
     beforeAll(() => {
-        valid_chain = supportedChains()[0];
+        valid_chain = supportedChains[0];
         valid_timestamp = new Date();
     });
 
@@ -135,20 +118,12 @@ describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => 
         expect(json.error.issues[0].code).toBe('invalid_date');
     });
 
-    it.skipIf(dbIsUp)('Should fail on database connection error', async () => {
-        const res = await app.request(`/${valid_chain}/blocknum?timestamp=${valid_timestamp}`);
-        expect(res.status).toBe(503);
-
-        const json = await res.json();
-        expect(json.error_message).toContain('ConnectionRefused');
-    });
-
-    it.if(dbIsUp)('Should return 200 Response on valid input', async () => {
+    it('Should return 200 Response on valid input', async () => {
         const res = await app.request(`/${valid_chain}/blocknum?timestamp=${valid_timestamp}`);
         expect(res.status).toBe(200);
 
         const json = await res.json();
-        expect(json).toHaveProperty('data');
+        expect(BlocktimeQueryResponseSchema.safeParse(json).success).toBe(true);
     });
 });
 
@@ -162,24 +137,11 @@ describe.each(['current'/*, 'final'*/])('Single blocknum query page (/{chain}/%s
         expect(json.error.issues[0].code).toBe('invalid_enum_value');
     });
 
-    if (dbIsUp) { // Need to use explicit `if` as `it.if().each()('xxx')` is not defined
-        it.each(supportedChains())('Should return a single value for each chain: %s', async (chain: string) => {
-            const res = await app.request(`/${chain}/${query_type}`);
-            expect(res.status).toBe(200);
+    it.each(supportedChains)('Should return a single value for each chain: %s', async (chain: string) => {
+        const res = await app.request(`/${chain}/${query_type}`);
+        expect(res.status).toBe(200);
 
-            const json = await res.json();
-            expect(json).toHaveProperty('data');
-            expect(json.data).toHaveLength(1);
-
-            console.log(chain, ':', json.data[0]);
-        });
-    } else {
-        it.each(supportedChains())('Should fail on database connection error for each chain: %s', async (chain: string) => {
-            const res = await app.request(`/${chain}/${query_type}`);
-            expect(res.status).toBe(503);
-
-            const json = await res.json();
-            expect(json.error_message).toContain('ConnectionRefused');
-        });
-    }
+        const json = await res.json();
+        expect(SingleBlocknumQueryResponseSchema.safeParse(json).success).toBe(true);
+    });
 });

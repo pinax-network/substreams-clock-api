@@ -1,9 +1,11 @@
 import { z } from '@hono/zod-openapi';
 
-import { supportedChains } from './queries';
+import { supportedChainsQuery } from './queries';
+
+const supportedChains = await supportedChainsQuery();
 
 export const BlockchainSchema = z.object({
-    chain: z.enum(supportedChains())
+    chain: z.enum(supportedChains)
     .openapi({
         param: {
             name: 'chain',
@@ -36,22 +38,16 @@ export const TimestampSchema = z.object({
 });
 
 export const BlocktimeQueryResponseSchema = z.object({
-    chain: z.enum(supportedChains()).openapi({
-        example: 'EOS',
-    }),
-    block_number: z.number().positive().openapi({
-        example: 1337,
-    }),
-    timestamp: z.date().openapi({
-        example: new Date(),
-    }),
+    chain: z.enum(supportedChains).openapi({ example: 'EOS' }),
+    block_number: z.coerce.number().positive().optional().openapi({ example: 1337 }),
+    timestamp: z.coerce.date().optional().openapi({ example: new Date() }),
 }).openapi('BlocktimeQuery');
 
 export const SingleBlocknumQueryResponseSchema = z.object({
-    chain: z.enum(supportedChains()).openapi({
-        example: 'EOS',
-    }),
-    block_number: z.number().positive().openapi({
-        example: 1337,
-    }),
+    chain: z.enum(supportedChains).openapi({ example: 'EOS' }),
+    block_number: z.coerce.number().positive().optional().openapi({ example: 1337 }),
 }).openapi('SingleBlocknumQuery');
+
+export const SupportedChainsQueryResponseSchema = z.object({
+    supportedChains: z.enum(supportedChains).array().openapi({ example: supportedChains })
+}).openapi('SupportedChainsQuery');

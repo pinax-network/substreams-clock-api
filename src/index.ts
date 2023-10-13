@@ -6,12 +6,30 @@ import config from "./config";
 import { banner } from "./banner";
 import { supportedChains, timestampQuery, blocknumQuery, currentBlocknumQuery, finalBlocknumQuery } from "./queries";
 
-const app = new Hono();
+const app = new Hono(); // TODO: Replace with OpenAPI middleware
 
 if ( config.NODE_ENV !== "production" )
     app.use('*', logger());
 
 app.get('/', (c) => c.text(banner()));
+//app.get('/metrics', (c) => c.text(banner())); // TODO: Implement metrics for 'current', 'final' and 'stats' for each chain + global ?
+app.get('/health', async (c) => {
+    const start = performance.now();
+    const dbStatus = await fetch(`${config.DB_HOST}/ping`).then(async (r) => {
+        return Response.json({
+            db_status: await r.text(),
+            db_response_time_ms: performance.now() - start
+        }, r);
+    }).catch((error) => {
+        return Response.json({
+            db_status: error.code,
+            db_response_time_ms: performance.now() - start
+        }, { status: 503 });
+    });
+
+    c.status(dbStatus.status);
+    return c.json(await dbStatus.json());
+});
 app.get('/chains', (c) => c.json({ supportedChains: supportedChains() }));
 app.use('/:chain/*', async (c, next) => {
     const chain = c.req.param('chain');

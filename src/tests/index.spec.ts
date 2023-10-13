@@ -35,6 +35,26 @@ describe('Chains page (/chains)', () => {
     });
 });
 
+describe('Health page (/health)', () => {
+    it.skipIf(dbIsUp)('Should fail on database connection error', async () => {
+        const res = await app.request('/health');
+        expect(res.status).toBe(503);
+
+        const json = await res.json();
+        expect(json).toHaveProperty('db_status');
+        expect(json.db_status).toContain('ConnectionRefused');
+    });
+
+    it.if(dbIsUp)('Should return 200 Response', async () => {
+        const res = await app.request('/health');
+        expect(res.status).toBe(200);
+
+        const json = await res.json();
+        expect(json).toHaveProperty('db_status');
+        expect(json.db_status).toContain('Ok');
+    });
+});
+
 describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)', () => {
     let valid_chain;
 

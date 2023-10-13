@@ -18,6 +18,7 @@ export function banner()  {
 
     HTTP GET
         /chains
+        /health
         /{chain}/timestamp?block_number=<positive integer>
         /{chain}/blocknum?timestamp=<UNIX or date>
         /{chain}/current

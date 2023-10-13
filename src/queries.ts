@@ -11,7 +11,7 @@ async function makeQuery(query: string) {
 }
 
 export async function timestampQuery(blockchain: string, blocknum: number) {
-    const query = `SELECT timestamp FROM ${config.DB_NAME} WHERE (blockchain == '${blockchain}') AND (blocknum == ${blocknum})`;
+    const query = `SELECT timestamp FROM ${config.DB_NAME} WHERE (blockchain == '${blockchain}') AND (blocknum == ${blocknum})`; // TODO: Replace with IN clause
 
     return await makeQuery(query);
 }

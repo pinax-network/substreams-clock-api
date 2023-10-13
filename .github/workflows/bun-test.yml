@@ -19,17 +19,7 @@ jobs:
       - name: 'Create mock data for testing'
         run: |
           clickhouse server&
-          echo "CREATE TABLE demo
-(
-    \`id\` UUID,
-    \`timestamp\` DateTime,
-    \`blocknum\` UInt64,
-    \`blockchain\` Enum('EOS', 'ETH', 'WAX', 'UX')
-)
-ENGINE = MergeTree
-ORDER BY tuple(id, blockchain);
-INSERT INTO demo (*) VALUES
-('660e46fa-229b-4f96-8000-3a95580b73f5', '2020-06-21 05:06:23', '751069', 'ETH'), ('ed1528be-e0b7-4f6e-8014-32cda1118f04', '2022-07-12 09:07:23', '525619', 'WAX'), ('05c5e3f0-61b1-4d3e-8030-0eb13ea3cc73', '2021-03-27 05:03:17', '187507', 'WAX'), ('130cee83-0e51-41de-8032-4e491053b488', '2021-03-02 06:03:31', '821014', 'UX'), ('09e76a45-2a71-4cdd-8032-e6cc98a05e26', '2020-08-29 08:08:54', '617393', 'ETH');" > setup.sql
+          echo "CREATE TABLE demo ( \`id\` UUID, \`timestamp\` DateTime, \`blocknum\` UInt64, \`blockchain\` Enum('EOS', 'ETH', 'WAX', 'UX') ) ENGINE = MergeTree ORDER BY tuple(id, blockchain); INSERT INTO demo (*) VALUES ('660e46fa-229b-4f96-8000-3a95580b73f5', '2020-06-21 05:06:23', '751069', 'ETH'), ('ed1528be-e0b7-4f6e-8014-32cda1118f04', '2022-07-12 09:07:23', '525619', 'WAX'), ('05c5e3f0-61b1-4d3e-8030-0eb13ea3cc73', '2021-03-27 05:03:17', '187507', 'WAX'), ('130cee83-0e51-41de-8032-4e491053b488', '2021-03-02 06:03:31', '821014', 'UX'), ('09e76a45-2a71-4cdd-8032-e6cc98a05e26', '2020-08-29 08:08:54', '617393', 'ETH');" > setup.sql
           clickhouse client --queries-file ./setup.sql
       - name: 'Run test'
         run: |

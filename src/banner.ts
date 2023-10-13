@@ -17,9 +17,10 @@ export function banner()  {
     Documentation: ${pkg.homepage}
 
     HTTP GET
-        /doc
         /chains
         /health
+        /openapi
+        /swagger
         /{chain}/timestamp?block_number=<positive integer>
         /{chain}/blocknum?timestamp=<UNIX or date>
         /{chain}/current

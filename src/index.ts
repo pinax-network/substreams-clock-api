@@ -13,10 +13,10 @@ const app = new OpenAPIHono();
 if ( config.NODE_ENV !== "production" )
     app.use('*', logger());
 
-app.use('/static/*', serveStatic({ root: './' }))
+app.use('/swagger/*', serveStatic({ root: './' }))
 
 // The OpenAPI documentation will be available at /doc
-app.doc('/doc', {
+app.doc('/openapi', {
     openapi: '3.0.0',
     info: {
         version: '0.0.1',

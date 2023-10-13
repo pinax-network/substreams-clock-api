@@ -17,15 +17,13 @@ export function banner()  {
     Documentation: ${pkg.homepage}
 
     HTTP GET
+        /doc
         /chains
         /health
         /{chain}/timestamp?block_number=<positive integer>
         /{chain}/blocknum?timestamp=<UNIX or date>
         /{chain}/current
         /{chain}/final
-
-    HTTP POST
-        TODO
 `
     return text;
 }

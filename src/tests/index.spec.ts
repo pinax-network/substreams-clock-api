@@ -57,46 +57,50 @@ describe('Health page (/health)', () => {
 
 describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)', () => {
     let valid_chain;
+    let valid_blocknum;
 
     beforeAll(() => {
         valid_chain = supportedChains()[0];
+        valid_blocknum = 1337;
     });
 
     it('Should fail on non-valid chains', async () => {
-        const res = await app.request('/dummy/timestamp');
+        const res = await app.request(`/dummy/timestamp?block_number=${valid_blocknum}`);
         expect(res.status).toBe(400);
 
         const json = await res.json();
-        expect(json.message).toContain('not supported');
+        expect(json.success).toBe(false);
+        expect(json.error.issues[0].code).toBe('invalid_enum_value');
     });
 
-    it('Should fail on missing block number parameter', async () => {
-        const res = await app.request(`/${valid_chain}/timestamp`);
-        expect(res.status).toBe(400);
-
-        const json = await res.json();
-        expect(json.message).toContain('missing');
-    });
-
-    it.each(['dummy', '-1', '0'])('Should fail on invalid block number: block_number=%s', async (blocknum: string) => {
+    it.each(['', 'abc'])('Should fail on missing or invalid block number parameter: block_number=%s', async (blocknum: string) => {
         const res = await app.request(`/${valid_chain}/timestamp?block_number=${blocknum}`);
         expect(res.status).toBe(400);
 
         const json = await res.json();
-        expect(json.message).toContain('not a valid');
+        expect(json.success).toBe(false);
+        expect(['invalid_type', 'too_small']).toContain(json.error.issues[0].code);
+    });
+
+    it.each([-1, 0])('Should fail on non-positive block number: block_number=%s', async (blocknum: number) => {
+        const res = await app.request(`/${valid_chain}/timestamp?block_number=${blocknum}`);
+        expect(res.status).toBe(400);
+
+        const json = await res.json();
+        expect(json.success).toBe(false);
+        expect(json.error.issues[0].code).toBe('too_small');
     });
 
     it.skipIf(dbIsUp)('Should fail on database connection error', async () => {
-        const res = await app.request(`/${valid_chain}/timestamp?block_number=1`);
-        expect(res.status).toBe(500);
+        const res = await app.request(`/${valid_chain}/timestamp?block_number=${valid_blocknum}`);
+        expect(res.status).toBe(503);
 
         const json = await res.json();
-        expect(json.message).toContain('ConnectionRefused');
+        expect(json.error_message).toContain('ConnectionRefused');
     });
 
     it.if(dbIsUp)('Should return 200 Response on valid input', async () => {
-        const blocknum = 1;
-        const res = await app.request(`/${valid_chain}/timestamp?block_number=${blocknum}`);
+        const res = await app.request(`/${valid_chain}/timestamp?block_number=${valid_blocknum}`);
         expect(res.status).toBe(200);
 
         const json = await res.json();
@@ -106,46 +110,41 @@ describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)'
 
 describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => {
     let valid_chain;
+    let valid_timestamp;
 
     beforeAll(() => {
         valid_chain = supportedChains()[0];
+        valid_timestamp = new Date();
     });
 
     it('Should fail on non-valid chains', async () => {
-        const res = await app.request('/dummy/blocknum');
+        const res = await app.request(`/dummy/blocknum?timestamp=${valid_timestamp}`);
         expect(res.status).toBe(400);
 
         const json = await res.json();
-        expect(json.message).toContain('not supported');
+        expect(json.success).toBe(false);
+        expect(json.error.issues[0].code).toBe('invalid_enum_value');
     });
 
-    it('Should fail on missing timestamp parameter', async () => {
-        const res = await app.request(`/${valid_chain}/blocknum`);
-        expect(res.status).toBe(400);
-
-        const json = await res.json();
-        expect(json.message).toContain('missing');
-    });
-
-    it.each(['dummy'])('Should fail on invalid timestamp: timestamp=%s', async (timestamp: string) => {
+    it.each(['', 'abc'])('Should fail on missing or invalid timestamp parameter: timestamp=%s', async (timestamp: string) => {
         const res = await app.request(`/${valid_chain}/blocknum?timestamp=${timestamp}`);
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
 
         const json = await res.json();
-        expect(json.message).toContain('Invalid');
+        expect(json.success).toBe(false);
+        expect(json.error.issues[0].code).toBe('invalid_date');
     });
 
     it.skipIf(dbIsUp)('Should fail on database connection error', async () => {
-        const res = await app.request(`/${valid_chain}/blocknum?timestamp=1`);
-        expect(res.status).toBe(500);
+        const res = await app.request(`/${valid_chain}/blocknum?timestamp=${valid_timestamp}`);
+        expect(res.status).toBe(503);
 
         const json = await res.json();
-        expect(json.message).toContain('ConnectionRefused');
+        expect(json.error_message).toContain('ConnectionRefused');
     });
 
     it.if(dbIsUp)('Should return 200 Response on valid input', async () => {
-        const timestamp = Date.parse(new Date());
-        const res = await app.request(`/${valid_chain}/blocknum?timestamp=${timestamp}`);
+        const res = await app.request(`/${valid_chain}/blocknum?timestamp=${valid_timestamp}`);
         expect(res.status).toBe(200);
 
         const json = await res.json();
@@ -159,7 +158,8 @@ describe.each(['current'/*, 'final'*/])('Single blocknum query page (/{chain}/%s
         expect(res.status).toBe(400);
 
         const json = await res.json();
-        expect(json.message).toContain('not supported');
+        expect(json.success).toBe(false);
+        expect(json.error.issues[0].code).toBe('invalid_enum_value');
     });
 
     if (dbIsUp) { // Need to use explicit `if` as `it.if().each()('xxx')` is not defined
@@ -176,10 +176,10 @@ describe.each(['current'/*, 'final'*/])('Single blocknum query page (/{chain}/%s
     } else {
         it.each(supportedChains())('Should fail on database connection error for each chain: %s', async (chain: string) => {
             const res = await app.request(`/${chain}/${query_type}`);
-            expect(res.status).toBe(500);
+            expect(res.status).toBe(503);
 
             const json = await res.json();
-            expect(json.message).toContain('ConnectionRefused');
+            expect(json.error_message).toContain('ConnectionRefused');
         });
     }
 });

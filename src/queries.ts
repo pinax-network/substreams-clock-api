@@ -1,3 +1,5 @@
+import { HTTPException } from 'hono/http-exception';
+
 import config from './config';
 
 async function makeQuery(query: string) {
@@ -5,9 +7,22 @@ async function makeQuery(query: string) {
         method: "POST",
         body: query,
         headers: { "Content-Type": "text/plain" },
+    }).catch((error) => {
+        throw new HTTPException(503, {
+            message: `(${error.path}) ${error} -- Check /health for API status.`
+        });
     });
 
-    return await response.json();
+    const body = await response.text();
+    let json;
+
+    try {
+        json = JSON.parse(body);
+    } catch {
+        json = { db_error_message: body };
+    }
+
+    return json;
 }
 
 export async function timestampQuery(blockchain: string, blocknum: number) {
@@ -18,7 +33,7 @@ export async function timestampQuery(blockchain: string, blocknum: number) {
 
 export async function blocknumQuery(blockchain: string, timestamp: Date) {
     const query = `SELECT blocknum FROM ${config.DB_NAME} WHERE (blockchain == '${blockchain}') AND (timestamp == '\
-${timestamp.toISOString().replace('T', ' ').substring(0, 19)}')`;
+${timestamp.toISOString().replace('T', ' ').substring(0, 19)}')`; // TODO: Find closest instead of matching timestamp or another route ?
 
     return await makeQuery(query);
 }

@@ -17,6 +17,7 @@
   ],
   "scripts": {
     "dev": "bun run --watch src/index.ts",
+    "lint": "bun run tsc --noEmit --skipLibCheck",
     "test": "bun test src/tests/*.spec.ts --coverage"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "bun-types": "^0.6.2"
+    "bun-types": "^0.6.2",
+    "typescript": "^5.2.2"
   }
 }

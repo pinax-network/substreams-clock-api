@@ -2,6 +2,9 @@ import { StaticDecode, Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import "dotenv/config";
 
+// TODO: Add commander for build (https://github.com/pinax-network/substreams-sink-websockets/blob/main/src/config.ts)
+
+// TODO: Move to Zod
 const EnvSchema = Type.Object({
     PORT: Type.String(),
     DB_HOST: Type.String(),

@@ -5,7 +5,7 @@ import config from './config';
 import { BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema} from './schemas';
 
 async function makeQuery(query: string) {
-    const response = await fetch(`${config.DB_HOST}/?default_format=JSONCompact`, {
+    const response = await fetch(`${config.DB_HOST}/?default_format=JSONColumns`, {
         method: "POST",
         body: query,
         headers: { "Content-Type": "text/plain" },
@@ -26,7 +26,6 @@ async function makeQuery(query: string) {
         });
     }
 
-    // TODO: Create ClickhouseDBSchema and validate data beforehand
     return json;
 }
 
@@ -37,7 +36,7 @@ export async function timestampQuery(blockchain: string, blocknum: number) {
     return {
         chain: blockchain,
         block_number: blocknum,
-        timestamp: json.data.flat()[0]
+        timestamp: json.timestamp[0]
     } as z.infer<typeof BlocktimeQueryResponseSchema>;
 }
 
@@ -48,28 +47,28 @@ ${timestamp.toISOString().replace('T', ' ').substring(0, 19)}')`; // TODO: Find 
 
     return {
         chain: blockchain,
-        block_number: json.data.flat()[0],
+        block_number: json.blocknum[0],
         timestamp
     } as z.infer<typeof BlocktimeQueryResponseSchema>;
 }
 
 export async function currentBlocknumQuery(blockchain: string) {
-    const query = `SELECT MAX(blocknum) FROM ${config.DB_NAME} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
+    const query = `SELECT MAX(blocknum) AS current FROM ${config.DB_NAME} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
     const json = await makeQuery(query);
 
     return {
         chain: blockchain,
-        block_number: json.data.flat()[0],
+        block_number: json.current[0],
     } as z.infer<typeof SingleBlocknumQueryResponseSchema>;
 }
 
 export async function finalBlocknumQuery(blockchain: string) {
-    /*const query = `SELECT MAX(blocknum) FROM ${config.DB_NAME} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
+    /*const query = `SELECT MAX(blocknum) as final FROM ${config.DB_NAME} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
     const json = await makeQuery(query);
 
     return {
         chain: blockchain,
-        block_number: json.data[0],
+        block_number: json.final[0],
     } as z.infer<typeof SingleBlocknumQueryResponseSchema>;
     */
     return { todo: 'Not Implemented', data: [[null]] };
@@ -79,5 +78,5 @@ export async function supportedChainsQuery() {
     const query = `SELECT DISTINCT blockchain FROM ${config.DB_NAME}`;
     const json = await makeQuery(query);
 
-    return json.data.map(a => a[0]);
+    return json.blockchain
 }

@@ -3,6 +3,7 @@ import { serveStatic } from 'hono/bun'
 import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 
+import pkg from "../package.json" assert { type: "json" };
 import * as routes from './routes';
 import config from "./config";
 import { banner } from "./banner";
@@ -15,11 +16,10 @@ if ( config.NODE_ENV !== "production" )
 
 app.use('/swagger/*', serveStatic({ root: './' }))
 
-// The OpenAPI documentation will be available at /doc
 app.doc('/openapi', {
     openapi: '3.0.0',
     info: {
-        version: '0.0.1',
+        version: pkg.version,
         title: 'Clock API',
     },
 });

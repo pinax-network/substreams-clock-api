@@ -55,7 +55,6 @@ export async function timestampQuery(blockchain: string, blocknum: number | numb
 export async function blocknumQuery(blockchain: string, timestamp: Date | Date[]) {
     timestamp = Array.isArray(timestamp) ? timestamp : [timestamp];
     const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.name} WHERE (blockchain == '${blockchain}') AND (timestamp IN (${
-
         timestamp.map((t) => '\'' + t.toISOString().replace('T', ' ').substring(0, 19) + '\'').toString()
     }))`; // TODO: Find closest instead of matching timestamp or another route ?
     const json = await makeQuery(query);

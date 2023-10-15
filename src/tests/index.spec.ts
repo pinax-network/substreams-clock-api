@@ -2,6 +2,7 @@ import { describe, expect, it, beforeAll } from 'bun:test';
 import { ZodError } from 'zod';
 
 import config from '../config';
+import { generateApp }  from '../index';
 import { banner } from "../banner";
 import { generateApp }  from '../index';
 import { supportedChainsQuery, timestampQuery } from "../queries";

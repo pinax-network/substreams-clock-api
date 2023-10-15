@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "lint": "bun run tsc --noEmit --skipLibCheck",
+    "lint": "bun run tsc --noEmit --skipLibCheck --pretty",
     "test": "bun test src/tests/*.spec.ts --coverage"
   },
   "dependencies": {

@@ -12,9 +12,9 @@ describe('Config from .env', () => {
 		expect(config).toEqual(process.env);
 	});
 
-	it('Should not load .env variables with wrong types', () => {
-		process.env.PORT = parseInt(process.env.port);
+	it('Should throw on missing .env variables', () => {
+		const { PORT, ...wrong_env } = process.env; // wrong_env will be missing required field PORT
 
-		expect(() => decode()).toThrow();
+		expect(() => decode(wrong_env)).toThrow();
 	});
 });

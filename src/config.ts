@@ -1,30 +1,20 @@
-import { StaticDecode, Type } from "@sinclair/typebox";
-import { Value } from "@sinclair/typebox/value";
+import { z } from '@hono/zod-openapi';
 import "dotenv/config";
 
 // TODO: Add commander for build (https://github.com/pinax-network/substreams-sink-websockets/blob/main/src/config.ts)
 
-// TODO: Move to Zod
-const EnvSchema = Type.Object({
-    PORT: Type.String(),
-    DB_HOST: Type.String(),
-    DB_NAME: Type.String(),
-    DB_USERNAME: Type.String(),
-    DB_PASSWORD: Type.String(),
+const EnvSchema = z.object({
+    NODE_ENV: z.string().optional(),
+    PORT: z.string(),
+    DB_HOST: z.string(),
+    DB_NAME: z.string(),
+    DB_USERNAME: z.string(),
+    DB_PASSWORD: z.string(),
 });
 
-export function decode(schema = EnvSchema) {
-    try {
-        return Value.Decode(schema, process.env);
-    } catch {
-        console.error("Could not load config: ");
-        for (const err of Value.Errors(schema, process.env)) {
-            console.error(err);
-        }
-
-        throw new Error('Error loading .env config');
-    }
+export function decode(data: unknown) {
+    return EnvSchema.passthrough().parse(data); // throws on failure
 }
 
-let config: StaticDecode<typeof EnvSchema> = decode();
+let config: z.infer<typeof EnvSchema> = decode(process.env);
 export default config!;

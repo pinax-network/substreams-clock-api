@@ -1,10 +1,13 @@
 import { describe, expect, it, beforeAll } from 'bun:test';
+import { ZodError } from 'zod';
 
 import app from '../index';
 import config from '../config';
 import { banner } from "../banner";
 import { supportedChainsQuery, timestampQuery } from "../queries";
-import { BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema} from '../schemas';
+import {
+    BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema, SupportedChainsQueryResponseSchema
+} from '../schemas';
 
 const supportedChains = await supportedChainsQuery();
 
@@ -30,8 +33,7 @@ describe('Chains page (/chains)', () => {
         const res = await app.request('/chains');
         const json = await res.json();
 
-        expect(json).toHaveProperty('supportedChains');
-        expect(json.supportedChains).toEqual(supportedChains);
+        expect(SupportedChainsQueryResponseSchema.safeParse(json).success).toBe(true);
     });
 });
 
@@ -47,8 +49,8 @@ describe('Health page (/health)', () => {
 });
 
 describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)', () => {
-    let valid_chain;
-    let valid_blocknum;
+    let valid_chain: string;
+    let valid_blocknum: number;
 
     beforeAll(() => {
         valid_chain = supportedChains[0];
@@ -92,8 +94,8 @@ describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)'
 });
 
 describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => {
-    let valid_chain;
-    let valid_timestamp;
+    let valid_chain: string;
+    let valid_timestamp: Date;
 
     beforeAll(() => {
         valid_chain = supportedChains[0];
@@ -113,7 +115,7 @@ describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => 
         const res = await app.request(`/${valid_chain}/blocknum?timestamp=${timestamp}`);
         expect(res.status).toBe(400);
 
-        const json = await res.json();
+        const json = await res.json() as ZodError;
         expect(json.success).toBe(false);
         expect(json.error.issues[0].code).toBe('invalid_date');
     });

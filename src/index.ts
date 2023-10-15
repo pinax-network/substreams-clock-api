@@ -1,10 +1,15 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { TypedResponse } from 'hono';
 import { serveStatic } from 'hono/bun'
 import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 
-import pkg from "../package.json" assert { type: "json" };
+import pkg from "../package.json";
 import * as routes from './routes';
+import {
+    type BlockchainSchema, type BlocknumSchema, type TimestampSchema,
+    type BlocktimeQueryResponseSchema, type SingleBlocknumQueryResponseSchema, type SupportedChainsQueryResponseSchema
+} from './schemas';
 import config from "./config";
 import { banner } from "./banner";
 import { supportedChainsQuery, timestampQuery, blocknumQuery, currentBlocknumQuery, finalBlocknumQuery } from "./queries";
@@ -36,52 +41,79 @@ app.onError((err, c) => {
     return c.json({ error_message }, error_code);
 });
 
-app.openapi(routes.indexRoute, (c) => c.text(banner()));
+app.openapi(routes.indexRoute, (c) => {
+    return {
+        response: c.text(banner())
+    } as TypedResponse<string>;
+});
 
 app.openapi(routes.healthCheckRoute, async (c) => {
+    type DBStatusResponse = {
+        db_status: string,
+        db_response_time_ms: number
+    };
+
     const start = performance.now();
     const dbStatus = await fetch(`${config.DB_HOST}/ping`).then(async (r) => {
         return Response.json({
             db_status: await r.text(),
             db_response_time_ms: performance.now() - start
-        }, r);
+        } as DBStatusResponse, r);
     }).catch((error) => {
         return Response.json({
             db_status: error.code,
             db_response_time_ms: performance.now() - start
-        }, { status: 503 });
+        } as DBStatusResponse, { status: 503 });
     });
 
     c.status(dbStatus.status);
-    return c.json(await dbStatus.json());
+    return {
+        response: c.json(await dbStatus.json())
+    } as TypedResponse<DBStatusResponse>;
 });
 
-app.openapi(routes.supportedChainsRoute, async (c) => c.json({ supportedChains: await supportedChainsQuery() }));
+app.openapi(routes.supportedChainsRoute, async (c) => {
+    return {
+        response: c.json({ supportedChains: await supportedChainsQuery() })
+    } as TypedResponse<SupportedChainsQueryResponseSchema>;
+});
 
 app.openapi(routes.timestampQueryRoute, async (c) => {
-    const { chain } = c.req.valid('param');
-    const { block_number } = c.req.valid('query');
+    // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
+    const { chain } = c.req.valid('param') as BlockchainSchema;
+    // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
+    const { block_number } = c.req.valid('query') as BlocknumSchema;
 
-    return c.json(await timestampQuery(chain, block_number));
+    return {
+        response: c.json(await timestampQuery(chain, block_number))
+    } as TypedResponse<BlocktimeQueryResponseSchema>;
 });
 
 app.openapi(routes.blocknumQueryRoute, async (c) => {
-    const { chain } = c.req.valid('param');
-    const { timestamp } = c.req.valid('query');
+    // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
+    const { chain } = c.req.valid('param') as BlockchainSchema;
+    // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
+    const { timestamp } = c.req.valid('query') as TimestampSchema;
 
-    return c.json(await blocknumQuery(chain, timestamp));
+    return {
+        response: c.json(await blocknumQuery(chain, timestamp))
+    } as TypedResponse<BlocktimeQueryResponseSchema>;
 });
 
 app.openapi(routes.currentBlocknumQueryRoute, async (c) => {
-    const { chain } = c.req.valid('param');
+    const { chain } = c.req.valid('param') as BlockchainSchema;
 
-    return c.json(await currentBlocknumQuery(chain));
+    return {
+        response: c.json(await currentBlocknumQuery(chain))
+    } as TypedResponse<SingleBlocknumQueryResponseSchema>;
 });
 
 app.openapi(routes.finalBlocknumQueryRoute, async (c) => {
-    const { chain } = c.req.valid('param');
+    const { chain } = c.req.valid('param') as BlockchainSchema;
 
-    return c.json(await finalBlocknumQuery(chain));
+    return {
+        response: c.json(await finalBlocknumQuery(chain))
+    } as TypedResponse<SingleBlocknumQueryResponseSchema>;
 });
 
 export default app;

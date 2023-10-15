@@ -14,106 +14,116 @@ import config from "./config";
 import { banner } from "./banner";
 import { supportedChainsQuery, timestampQuery, blocknumQuery, currentBlocknumQuery, finalBlocknumQuery } from "./queries";
 
-const app = new OpenAPIHono();
+// Export a function to be able to create App in tests as default export is different for setting Bun port/hostname
+// See (https://hono.dev/getting-started/bun#change-port-number) vs. (https://hono.dev/getting-started/bun#_3-hello-world)
+export function generateApp() {
+    const app = new OpenAPIHono();
 
-if ( config.NODE_ENV !== "production" )
-    app.use('*', logger());
+    if ( config.NODE_ENV !== "production" )
+        app.use('*', logger());
 
-app.use('/swagger/*', serveStatic({ root: './' }))
+    app.use('/swagger/*', serveStatic({ root: './' }))
 
-app.doc('/openapi', {
-    openapi: '3.0.0',
-    info: {
-        version: pkg.version,
-        title: 'Clock API',
-    },
-});
-
-app.onError((err, c) => {
-    let error_message = `${err}`;
-    let error_code = 500;
-
-    if (err instanceof HTTPException){
-        error_message = err.message;
-        error_code = err.status;
-    }
-
-    return c.json({ error_message }, error_code);
-});
-
-app.openapi(routes.indexRoute, (c) => {
-    return {
-        response: c.text(banner())
-    } as TypedResponse<string>;
-});
-
-app.openapi(routes.healthCheckRoute, async (c) => {
-    type DBStatusResponse = {
-        db_status: string,
-        db_response_time_ms: number
-    };
-
-    const start = performance.now();
-    const dbStatus = await fetch(`${config.DB_HOST}/ping`).then(async (r) => {
-        return Response.json({
-            db_status: await r.text(),
-            db_response_time_ms: performance.now() - start
-        } as DBStatusResponse, r);
-    }).catch((error) => {
-        return Response.json({
-            db_status: error.code,
-            db_response_time_ms: performance.now() - start
-        } as DBStatusResponse, { status: 503 });
+    app.doc('/openapi', {
+        openapi: '3.0.0',
+        info: {
+            version: pkg.version,
+            title: 'Clock API',
+        },
     });
 
-    c.status(dbStatus.status);
-    return {
-        response: c.json(await dbStatus.json())
-    } as TypedResponse<DBStatusResponse>;
-});
+    app.onError((err, c) => {
+        let error_message = `${err}`;
+        let error_code = 500;
 
-app.openapi(routes.supportedChainsRoute, async (c) => {
-    return {
-        response: c.json({ supportedChains: await supportedChainsQuery() })
-    } as TypedResponse<SupportedChainsQueryResponseSchema>;
-});
+        if (err instanceof HTTPException){
+            error_message = err.message;
+            error_code = err.status;
+        }
 
-app.openapi(routes.timestampQueryRoute, async (c) => {
-    // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
-    const { chain } = c.req.valid('param') as BlockchainSchema;
-    // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
-    const { block_number } = c.req.valid('query') as BlocknumSchema;
+        return c.json({ error_message }, error_code);
+    });
 
-    return {
-        response: c.json(await timestampQuery(chain, block_number))
-    } as TypedResponse<BlocktimeQueryResponseSchema>;
-});
+    app.openapi(routes.indexRoute, (c) => {
+        return {
+            response: c.text(banner())
+        } as TypedResponse<string>;
+    });
 
-app.openapi(routes.blocknumQueryRoute, async (c) => {
-    // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
-    const { chain } = c.req.valid('param') as BlockchainSchema;
-    // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
-    const { timestamp } = c.req.valid('query') as TimestampSchema;
+    app.openapi(routes.healthCheckRoute, async (c) => {
+        type DBStatusResponse = {
+            db_status: string,
+            db_response_time_ms: number
+        };
 
-    return {
-        response: c.json(await blocknumQuery(chain, timestamp))
-    } as TypedResponse<BlocktimeQueryResponseSchema>;
-});
+        const start = performance.now();
+        const dbStatus = await fetch(`${config.dbHost}/ping`).then(async (r) => {
+            return Response.json({
+                db_status: await r.text(),
+                db_response_time_ms: performance.now() - start
+            } as DBStatusResponse, r);
+        }).catch((error) => {
+            return Response.json({
+                db_status: error.code,
+                db_response_time_ms: performance.now() - start
+            } as DBStatusResponse, { status: 503 });
+        });
 
-app.openapi(routes.currentBlocknumQueryRoute, async (c) => {
-    const { chain } = c.req.valid('param') as BlockchainSchema;
+        c.status(dbStatus.status);
+        return {
+            response: c.json(await dbStatus.json())
+        } as TypedResponse<DBStatusResponse>;
+    });
 
-    return {
-        response: c.json(await currentBlocknumQuery(chain))
-    } as TypedResponse<SingleBlocknumQueryResponseSchema>;
-});
+    app.openapi(routes.supportedChainsRoute, async (c) => {
+        return {
+            response: c.json({ supportedChains: await supportedChainsQuery() })
+        } as TypedResponse<SupportedChainsQueryResponseSchema>;
+    });
 
-app.openapi(routes.finalBlocknumQueryRoute, async (c) => {
-    const { chain } = c.req.valid('param') as BlockchainSchema;
+    app.openapi(routes.timestampQueryRoute, async (c) => {
+        // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
+        const { chain } = c.req.valid('param') as BlockchainSchema;
+        // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
+        const { block_number } = c.req.valid('query') as BlocknumSchema;
 
-    return {
-        response: c.json(await finalBlocknumQuery(chain))
-    } as TypedResponse<SingleBlocknumQueryResponseSchema>;
-});
+        return {
+            response: c.json(await timestampQuery(chain, block_number))
+        } as TypedResponse<BlocktimeQueryResponseSchema>;
+    });
 
-export default app;
+    app.openapi(routes.blocknumQueryRoute, async (c) => {
+        // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
+        const { chain } = c.req.valid('param') as BlockchainSchema;
+        // @ts-expect-error: Suppress type of parameter expected to be never (see https://github.com/honojs/middleware/issues/200)
+        const { timestamp } = c.req.valid('query') as TimestampSchema;
+
+        return {
+            response: c.json(await blocknumQuery(chain, timestamp))
+        } as TypedResponse<BlocktimeQueryResponseSchema>;
+    });
+
+    app.openapi(routes.currentBlocknumQueryRoute, async (c) => {
+        const { chain } = c.req.valid('param') as BlockchainSchema;
+
+        return {
+            response: c.json(await currentBlocknumQuery(chain))
+        } as TypedResponse<SingleBlocknumQueryResponseSchema>;
+    });
+
+    app.openapi(routes.finalBlocknumQueryRoute, async (c) => {
+        const { chain } = c.req.valid('param') as BlockchainSchema;
+
+        return {
+            response: c.json(await finalBlocknumQuery(chain))
+        } as TypedResponse<SingleBlocknumQueryResponseSchema>;
+    });
+
+    return app;
+}
+
+export default {
+    port: config.port,
+    hostname: config.hostname,
+    fetch: generateApp().fetch
+};

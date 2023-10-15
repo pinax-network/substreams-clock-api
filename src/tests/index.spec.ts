@@ -1,10 +1,14 @@
 import { describe, expect, it, beforeAll } from 'bun:test';
+import { ZodError } from 'zod';
 
 import app from '../index';
 import config from '../config';
 import { banner } from "../banner";
 import { supportedChainsQuery, timestampQuery } from "../queries";
-import { BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema} from '../schemas';
+import {
+    BlockchainSchema, BlocknumSchema, TimestampSchema,
+    BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema, SupportedChainsQueryResponseSchema
+} from '../schemas';
 
 const supportedChains = await supportedChainsQuery();
 
@@ -28,10 +32,9 @@ describe('Chains page (/chains)', () => {
 
     it('Should return the supported chains as JSON', async () => {
         const res = await app.request('/chains');
-        const json = await res.json();
+        const json = await res.json() as unknown;
 
-        expect(json).toHaveProperty('supportedChains');
-        expect(json.supportedChains).toEqual(supportedChains);
+        expect(BlocktimeQueryResponseSchema.safeParse(json).success).toBe(true);
     });
 });
 
@@ -47,12 +50,18 @@ describe('Health page (/health)', () => {
 });
 
 describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)', () => {
-    let valid_chain;
-    let valid_blocknum;
+    let valid_chain: any;
+    let valid_blocknum: any;
 
     beforeAll(() => {
-        valid_chain = supportedChains[0];
-        valid_blocknum = 1337;
+        valid_chain = BlockchainSchema.safeParse(supportedChains[0]);
+        valid_blocknum = BlocknumSchema.safeParse(1337);
+
+        expect(valid_chain.success).toBe(true);
+        expect(valid_blocknum.success).toBe(true);
+
+        valid_chain = valid_chain.data;
+        valid_blocknum = valid_blocknum.data;
     });
 
     it('Should fail on non-valid chains', async () => {
@@ -92,12 +101,18 @@ describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)'
 });
 
 describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => {
-    let valid_chain;
-    let valid_timestamp;
+    let valid_chain: any;
+    let valid_timestamp: any;
 
     beforeAll(() => {
-        valid_chain = supportedChains[0];
-        valid_timestamp = new Date();
+        valid_chain = BlockchainSchema.safeParse(supportedChains[0]);
+        valid_timestamp = BlocknumSchema.safeParse(new Date());
+
+        expect(valid_chain.success).toBe(true);
+        expect(valid_timestamp.success).toBe(true);
+
+        valid_chain = valid_chain.data;
+        valid_timestamp = valid_timestamp.data;
     });
 
     it('Should fail on non-valid chains', async () => {
@@ -113,7 +128,7 @@ describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => 
         const res = await app.request(`/${valid_chain}/blocknum?timestamp=${timestamp}`);
         expect(res.status).toBe(400);
 
-        const json = await res.json();
+        const json = await res.json() as ZodError;
         expect(json.success).toBe(false);
         expect(json.error.issues[0].code).toBe('invalid_date');
     });

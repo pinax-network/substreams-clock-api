@@ -13,7 +13,7 @@ describe('Config from .env', () => {
 	});
 
 	it('Should not load .env variables with wrong types', () => {
-		process.env.PORT = parseInt(process.env.port);
+		process.env.PORT = process.env.port;
 
 		expect(() => decode()).toThrow();
 	});

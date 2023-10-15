@@ -6,6 +6,7 @@ import "dotenv/config";
 
 // TODO: Move to Zod
 const EnvSchema = Type.Object({
+    NODE_ENV: Type.String(),
     PORT: Type.String(),
     DB_HOST: Type.String(),
     DB_NAME: Type.String(),

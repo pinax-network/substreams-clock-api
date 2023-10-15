@@ -1,4 +1,4 @@
-import pkg from "../package.json" assert { type: "json" };
+import pkg from "../package.json";
 
 // https://fsymbols.com/generators/carty/
 export function banner()  {

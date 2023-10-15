@@ -1,0 +1,30 @@
+name: Build
+on:
+  release:
+    types: [ published ]
+
+permissions:
+  contents: write
+
+jobs:
+  bun-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun test
+        env:
+            HOSTNAME: ${{ vars.HOSTNAME }}
+            PORT: ${{ vars.PORT }}
+            DB_HOST: ${{ vars.DB_HOST }}
+            DB_NAME: ${{ secrets.DB_NAME }}
+            DB_USERNAME: ${{ secrets.USERNAME }}
+            DB_PASSWORD: ''
+      - run: bun run build
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            substreams-clock-api

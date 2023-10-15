@@ -61,7 +61,7 @@ export type BlockchainSchema = z.infer<typeof BlockchainSchema>;
 export const BlocknumSchema = z.object({
     block_number: z.union([
         z_blocknum,
-        convertBlocknumArray(z_blocknum.array().nonempty().max(config.MAX_ELEMENTS_QUERIED))
+        convertBlocknumArray(z_blocknum.array().nonempty().max(config.maxElementsQueried))
     ])
     .openapi({
         param: {
@@ -76,7 +76,7 @@ export type BlocknumSchema = z.infer<typeof BlocknumSchema>;
 export const TimestampSchema = z.object({
     timestamp: z.union([
         z_timestamp,
-        convertTimestampArray(z_timestamp.array().nonempty().max(config.MAX_ELEMENTS_QUERIED))
+        convertTimestampArray(z_timestamp.array().nonempty().max(config.maxElementsQueried))
     ])
     .openapi({
         param: {

@@ -52,8 +52,6 @@ export const BlockchainSchema = z.object({
     })
 });
 
-// Represents the timestamp query parameter for `/{c}/timestamp?blocknum=` endpoint
-// Supports array parsing via comma-separated values
 export const BlocknumSchema = z.object({
     block_number: z.union([
         z_blocknum,
@@ -68,8 +66,6 @@ export const BlocknumSchema = z.object({
     })
 });
 
-// Represents the timestamp query parameter for `/{c}/blocknum?timestamp=` endpoint
-// Supports array parsing via comma-separated values
 export const TimestampSchema = z.object({
     timestamp: z.union([
         z_timestamp,

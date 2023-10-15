@@ -21,8 +21,8 @@ export function banner()  {
         /health
         /openapi
         /swagger
-        /{chain}/timestamp?block_number=<positive integer>
-        /{chain}/blocknum?timestamp=<UNIX or date>
+        /{chain}/timestamp?block_number=<positive integer or comma-separated>
+        /{chain}/blocknum?timestamp=<UNIX or date or comma-separated>
         /{chain}/current
         /{chain}/final
 `

@@ -11,7 +11,7 @@ type JSONObjectEachRow = {
     }
 };
 
-async function makeQuery(query: string, format: string = 'JSONObjectEachRow') {
+async function makeQuery(query: string, format: string = 'JSONObjectEachRow'): Promise<any> {
     const response = await fetch(`${config.dbHost}/?default_format=${format}`, {
         method: "POST",
         body: query,
@@ -36,10 +36,7 @@ async function makeQuery(query: string, format: string = 'JSONObjectEachRow') {
     return json;
 }
 
-export async function timestampQuery(blockchain: string, blocknum: number | number[]) { // TODO: Merge `timestampQuery` / `blocknumQuery`
-    const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.name} WHERE (blockchain == '${blockchain}') AND (blocknum IN (${blocknum.toString()}))`;
-    const json = await makeQuery(query);
-
+function parseBlockTimeQueryResponse(json: JSONObjectEachRow): BlocktimeQueryResponsesSchema {
     return BlocktimeQueryResponsesSchema.parse(
         Object.values(json as JSONObjectEachRow).map((r: {
             [key: string]: Array<string>
@@ -52,23 +49,21 @@ export async function timestampQuery(blockchain: string, blocknum: number | numb
     }));
 }
 
-export async function blocknumQuery(blockchain: string, timestamp: Date | Date[]) {
+export async function timestampQuery(blockchain: string, blocknum: number | number[]): Promise<BlocktimeQueryResponsesSchema> {
+    const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.name} WHERE (blockchain == '${blockchain}') AND (blocknum IN (${blocknum.toString()}))`;
+    const json = await makeQuery(query);
+    
+    return parseBlockTimeQueryResponse(json);
+}
+
+export async function blocknumQuery(blockchain: string, timestamp: Date | Date[]): Promise<BlocktimeQueryResponsesSchema> {
     timestamp = Array.isArray(timestamp) ? timestamp : [timestamp];
     const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.name} WHERE (blockchain == '${blockchain}') AND (timestamp IN (${
-        timestamp.map((t) => '\'' + t.toISOString().replace('T', ' ').substring(0, 19) + '\'').toString()
+        timestamp.map((t) => '\'' + t.toISOString().replace('T', ' ').substring(0, 19) + '\'').toString() // Format dates to find them in DB (mock data)
     }))`; // TODO: Find closest instead of matching timestamp or another route ?
     const json = await makeQuery(query);
 
-    return BlocktimeQueryResponsesSchema.parse(
-        Object.values(json as JSONObjectEachRow).map((r: {
-            [key: string]: Array<string>
-        }) => {
-        return BlocktimeQueryResponseSchema.parse({
-            blockchain: Object.values(r)[0][0],
-            block_number: Object.values(r)[0][1],
-            timestamp: Object.values(r)[0][2]
-        });
-    }));
+    return parseBlockTimeQueryResponse(json)
 }
 
 export async function currentBlocknumQuery(blockchain: string) {
@@ -95,7 +90,8 @@ export async function finalBlocknumQuery(blockchain: string) {
 
 export async function supportedChainsQuery() {
     const query = `SELECT DISTINCT blockchain FROM ${config.name}`;
-    // Required for returning a const value in order to make z.enum() work in the schema definitions
+
+    // Required format for returning a const value in order to make z.enum() work in the schema definitions
     const json = await makeQuery(query, 'JSONColumns');
 
     return json.blockchain

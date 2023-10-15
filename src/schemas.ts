@@ -4,48 +4,43 @@ import config from './config';
 import { supportedChainsQuery } from './queries';
 
 const supportedChains = await supportedChainsQuery();
+
+// Base types
 const z_blocknum = z.coerce.number().positive();
 const z_timestamp = z.coerce.date();
 
 // Adapted from https://stackoverflow.com/a/75212079
-const convertBlocknumArray = <T extends z.ZodType<Array<number>>>(schema: T) => {
+// Enforces parsing capability from an array of blocknum strings returned by Clickhouse DB
+const blocknumsFromStringArray = <T extends z.ZodType<Array<z.infer<typeof z_blocknum>>>>(schema: T) => {
     return z.preprocess((obj) => {
         if (Array.isArray(obj)) {
             return obj;
         } else if (typeof obj === "string") {
             return obj.split(",").map((v: string) => {
                 const parsed = z_blocknum.safeParse(v);
-                if (parsed.success)
-                    return parsed.data;
-                else
-                    return z.NEVER;
+                return parsed.success ? parsed.data : z.NEVER;
             });
         }
     }, schema);
 };
-const convertTimestampArray = <T extends z.ZodType<Array<Date>>>(schema: T) => {
+
+// Same as above for timestamp parsing
+const timestampsFromStringArray = <T extends z.ZodType<Array<z.infer<typeof z_timestamp>>>>(schema: T) => {
     return z.preprocess((obj) => {
         if (Array.isArray(obj)) {
             return obj;
         } else if (typeof obj === "string") {
             return obj.split(",").map((v: string) => {
                 const epochParseResult = z.coerce.number().positive().safeParse(v);
-                let parsed;
+                const parsed = epochParseResult.success ? z_timestamp.safeParse(new Date(epochParseResult.data)) : z_timestamp.safeParse(v);
 
-                if (epochParseResult.success) // Convert epoch
-                    parsed = z_timestamp.safeParse(new Date(epochParseResult.data));
-                else // Convert string directly
-                    parsed = z_timestamp.safeParse(v);
-
-                if (parsed.success)
-                    return parsed.data;
-                else
-                    return z.NEVER;
+                return parsed.success ? parsed.data : z.NEVER;
             });
         }
     }, schema);
 };
 
+// Represents the valid blockchain root path
 export const BlockchainSchema = z.object({
     chain: z.enum(supportedChains)
     .openapi({
@@ -56,12 +51,13 @@ export const BlockchainSchema = z.object({
         example: 'EOS',
     })
 });
-export type BlockchainSchema = z.infer<typeof BlockchainSchema>;
 
+// Represents the timestamp query parameter for `/{c}/timestamp?blocknum=` endpoint
+// Supports array parsing via comma-separated values
 export const BlocknumSchema = z.object({
     block_number: z.union([
         z_blocknum,
-        convertBlocknumArray(z_blocknum.array().nonempty().max(config.maxElementsQueried))
+        blocknumsFromStringArray(z_blocknum.array().nonempty().max(config.maxElementsQueried))
     ])
     .openapi({
         param: {
@@ -71,12 +67,13 @@ export const BlocknumSchema = z.object({
         example: 1337
     })
 });
-export type BlocknumSchema = z.infer<typeof BlocknumSchema>;
 
+// Represents the timestamp query parameter for `/{c}/blocknum?timestamp=` endpoint
+// Supports array parsing via comma-separated values
 export const TimestampSchema = z.object({
     timestamp: z.union([
         z_timestamp,
-        convertTimestampArray(z_timestamp.array().nonempty().max(config.maxElementsQueried))
+        timestampsFromStringArray(z_timestamp.array().nonempty().max(config.maxElementsQueried))
     ])
     .openapi({
         param: {
@@ -86,8 +83,9 @@ export const TimestampSchema = z.object({
         example: new Date().toISOString()
     })
 });
-export type TimestampSchema = z.infer<typeof TimestampSchema>;
 
+// Represents a block number <> timestamp conversion output for `/{c}/timestamp` and `/{c}/blocknum` endpoints
+// It can either be a single output for each field or an array of outputs
 export const BlocktimeQueryResponseSchema = z.object({
     blockchain: z.enum(supportedChains).openapi({ example: 'EOS' }),
     block_number: z_blocknum.openapi({ example: 1337 }),
@@ -96,18 +94,26 @@ export const BlocktimeQueryResponseSchema = z.object({
         z_timestamp.array().openapi({ example: [new Date(), new Date(0)] }),
     ])
 }).openapi('BlocktimeQueryResponse');
-export type BlocktimeQueryResponseSchema = z.infer<typeof BlocktimeQueryResponseSchema>;
 
 export const BlocktimeQueryResponsesSchema = BlocktimeQueryResponseSchema.array().openapi('BlocktimeQueryResponses');
-export type BlocktimeQueryResponsesSchema = z.infer<typeof BlocktimeQueryResponsesSchema>;
 
+// Represents a single block number output for `/current` and `/final` endpoints
 export const SingleBlocknumQueryResponseSchema = z.object({
     chain: z.enum(supportedChains).openapi({ example: 'EOS' }),
     block_number: z_blocknum.optional().openapi({ example: 1337 }),
 }).openapi('SingleBlocknumQuery');
-export type SingleBlocknumQueryResponseSchema = z.infer<typeof SingleBlocknumQueryResponseSchema>;
 
+// Represents the supported chains output for `/chains`
 export const SupportedChainsQueryResponseSchema = z.object({
     supportedChains: z.enum(supportedChains).array().openapi({ example: supportedChains })
 }).openapi('SupportedChainsQuery');
+
+// Type exports for ease of use
+export type BlockchainSchema = z.infer<typeof BlockchainSchema>;
+export type BlocknumSchema = z.infer<typeof BlocknumSchema>;
+export type TimestampSchema = z.infer<typeof TimestampSchema>;
+
+export type BlocktimeQueryResponseSchema = z.infer<typeof BlocktimeQueryResponseSchema>;
+export type BlocktimeQueryResponsesSchema = z.infer<typeof BlocktimeQueryResponsesSchema>;
+export type SingleBlocknumQueryResponseSchema = z.infer<typeof SingleBlocknumQueryResponseSchema>;
 export type SupportedChainsQueryResponseSchema = z.infer<typeof SupportedChainsQueryResponseSchema>;

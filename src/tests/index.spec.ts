@@ -85,7 +85,7 @@ describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)'
     });
 
     it(`Should not allow more than the maximum number of elements to be queried (${config.MAX_ELEMENTS_QUERIED})`, async () => {
-        const res = await app.request(`/dummy/timestamp?block_number=${Array(config.MAX_ELEMENTS_QUERIED + 1).fill(valid_blocknum).toString()}`);
+        const res = await app.request(`/${valid_chain}/timestamp?block_number=${Array(config.MAX_ELEMENTS_QUERIED + 1).fill(valid_blocknum).toString()}`);
         expect(res.status).toBe(400);
 
         const json = await res.json();
@@ -93,12 +93,12 @@ describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)'
         expect(json.error.issues[0].code).toBe('too_big');
     });
 
-    it('Should return 200 Response on valid input', async () => {
+    it('Should return (200) empty JSON on valid input', async () => {
         const res = await app.request(`/${valid_chain}/timestamp?block_number=${valid_blocknum}`);
         expect(res.status).toBe(200);
 
         const json = await res.json();
-        expect(BlocktimeQueryResponseSchema.safeParse(json).success).toBe(true);
+        expect(json).toHaveLength(0);
     });
 });
 
@@ -126,15 +126,25 @@ describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => 
 
         const json = await res.json() as ZodError;
         expect(json.success).toBe(false);
-        expect(json.error.issues[0].code).toBe('invalid_date');
+        expect(json.error.issues[0].code).toBe('invalid_union');
+        expect(json.error.issues[0].unionErrors[0].issues[0].code).toBe('invalid_date');
     });
 
-    it('Should return 200 Response on valid input', async () => {
+    it(`Should not allow more than the maximum number of elements to be queried (${config.MAX_ELEMENTS_QUERIED})`, async () => {
+        const res = await app.request(`/${valid_chain}/blocknum?timestamp=${Array(config.MAX_ELEMENTS_QUERIED + 1).fill(valid_timestamp).toString()}`);
+        expect(res.status).toBe(400);
+
+        const json = await res.json();
+        expect(json.success).toBe(false);
+        expect(json.error.issues[0].code).toBe('too_big');
+    });
+
+    it('Should return (200) empty JSON on valid input', async () => {
         const res = await app.request(`/${valid_chain}/blocknum?timestamp=${valid_timestamp}`);
         expect(res.status).toBe(200);
 
         const json = await res.json();
-        expect(BlocktimeQueryResponseSchema.safeParse(json).success).toBe(true);
+        expect(json).toHaveLength(0);
     });
 });
 

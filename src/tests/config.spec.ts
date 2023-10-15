@@ -9,7 +9,7 @@ describe('Config from .env', () => {
 	});
 
 	it('Should load .env variables', () => {
-		expect(config).toEqual(process.env);
+		expect(config).toMatchObject(process.env);
 	});
 
 	it('Should throw on missing .env variables', () => {

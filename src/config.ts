@@ -10,6 +10,7 @@ const EnvSchema = z.object({
     DB_NAME: z.string(),
     DB_USERNAME: z.string(),
     DB_PASSWORD: z.string(),
+    MAX_ELEMENTS_QUERIED: z.coerce.number().default(10)
 });
 
 export function decode(data: unknown) {

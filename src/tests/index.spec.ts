@@ -6,7 +6,6 @@ import config from '../config';
 import { banner } from "../banner";
 import { supportedChainsQuery, timestampQuery } from "../queries";
 import {
-    BlockchainSchema, BlocknumSchema, TimestampSchema,
     BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema, SupportedChainsQueryResponseSchema
 } from '../schemas';
 
@@ -32,9 +31,9 @@ describe('Chains page (/chains)', () => {
 
     it('Should return the supported chains as JSON', async () => {
         const res = await app.request('/chains');
-        const json = await res.json() as unknown;
+        const json = await res.json();
 
-        expect(BlocktimeQueryResponseSchema.safeParse(json).success).toBe(true);
+        expect(SupportedChainsQueryResponseSchema.safeParse(json).success).toBe(true);
     });
 });
 
@@ -50,18 +49,12 @@ describe('Health page (/health)', () => {
 });
 
 describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)', () => {
-    let valid_chain: any;
-    let valid_blocknum: any;
+    let valid_chain: string;
+    let valid_blocknum: number;
 
     beforeAll(() => {
-        valid_chain = BlockchainSchema.safeParse(supportedChains[0]);
-        valid_blocknum = BlocknumSchema.safeParse(1337);
-
-        expect(valid_chain.success).toBe(true);
-        expect(valid_blocknum.success).toBe(true);
-
-        valid_chain = valid_chain.data;
-        valid_blocknum = valid_blocknum.data;
+        valid_chain = supportedChains[0];
+        valid_blocknum = 1337;
     });
 
     it('Should fail on non-valid chains', async () => {
@@ -101,18 +94,12 @@ describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)'
 });
 
 describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => {
-    let valid_chain: any;
-    let valid_timestamp: any;
+    let valid_chain: string;
+    let valid_timestamp: Date;
 
     beforeAll(() => {
-        valid_chain = BlockchainSchema.safeParse(supportedChains[0]);
-        valid_timestamp = BlocknumSchema.safeParse(new Date());
-
-        expect(valid_chain.success).toBe(true);
-        expect(valid_timestamp.success).toBe(true);
-
-        valid_chain = valid_chain.data;
-        valid_timestamp = valid_timestamp.data;
+        valid_chain = supportedChains[0];
+        valid_timestamp = new Date();
     });
 
     it('Should fail on non-valid chains', async () => {

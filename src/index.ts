@@ -4,25 +4,26 @@ import { serveStatic } from 'hono/bun'
 import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 
-import pkg from "../package.json";
 import * as routes from './routes';
+import config from "./config";
+import pkg from "../package.json";
 import {
     type BlockchainSchema, type BlocknumSchema, type TimestampSchema,
     type BlocktimeQueryResponseSchema, type SingleBlocknumQueryResponseSchema, type SupportedChainsQueryResponseSchema
 } from './schemas';
-import config from "./config";
 import { banner } from "./banner";
 import { supportedChainsQuery, timestampQuery, blocknumQuery, currentBlocknumQuery, finalBlocknumQuery } from "./queries";
 
-// Export a function to be able to create App in tests as default export is different for setting Bun port/hostname
+// Export app as a function to be able to create it in tests as well.
+// Default export is different for setting Bun port/hostname than running tests.
 // See (https://hono.dev/getting-started/bun#change-port-number) vs. (https://hono.dev/getting-started/bun#_3-hello-world)
 export function generateApp() {
     const app = new OpenAPIHono();
 
     if ( config.NODE_ENV !== "production" )
-        app.use('*', logger());
+        app.use('*', logger()); // TODO: Custom logger based on config.verbose
 
-    app.use('/swagger/*', serveStatic({ root: './' }))
+    app.use('/swagger/*', serveStatic({ root: './' }));
 
     app.doc('/openapi', {
         openapi: '3.0.0',

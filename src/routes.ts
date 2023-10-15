@@ -1,6 +1,43 @@
 import { createRoute } from '@hono/zod-openapi';
 import * as schemas from './schemas';
 
+export const indexRoute = createRoute({
+    method: 'get',
+    path: '/',
+    responses: {
+        200: {
+            description: 'Index page banner.',
+        },
+    },
+});
+
+export const healthCheckRoute = createRoute({
+    method: 'get',
+    path: '/health',
+    responses: {
+        200: {
+            description: 'Health check service.',
+        },
+    },
+});
+
+export const supportedChainsRoute = createRoute({
+    method: 'get',
+    path: '/chains',
+    responses: {
+        200: {
+            content: {
+                'application/json': {
+                    schema: schemas.SupportedChainsQueryResponseSchema,
+                },
+            },
+            description: 'Fetch supported chains from the Clickhouse DB.',
+        },
+    },
+});
+
+// Note: OpenAPI and SwaggerUI routes are created directly in `index.ts`
+
 export const blocknumQueryRoute = createRoute({
     method: 'get',
     path: '/{chain}/blocknum',
@@ -71,41 +108,6 @@ export const finalBlocknumQueryRoute = createRoute({
                 },
             },
             description: 'Retrieve the latest final block number on the blockchain.',
-        },
-    },
-});
-
-export const indexRoute = createRoute({
-    method: 'get',
-    path: '/',
-    responses: {
-        200: {
-            description: 'Index page banner.',
-        },
-    },
-});
-
-export const healthCheckRoute = createRoute({
-    method: 'get',
-    path: '/health',
-    responses: {
-        200: {
-            description: 'Health check service.',
-        },
-    },
-});
-
-export const supportedChainsRoute = createRoute({
-    method: 'get',
-    path: '/chains',
-    responses: {
-        200: {
-            content: {
-                'application/json': {
-                    schema: schemas.SupportedChainsQueryResponseSchema,
-                },
-            },
-            description: 'Fetch supported chains from the Clickhouse DB.',
         },
     },
 });

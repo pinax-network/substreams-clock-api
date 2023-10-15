@@ -14,8 +14,13 @@ jobs:
       - uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
-      - run: bun install
-      - run: bun run build
+
+      - name: 'Install Dependencies'
+        run: bun install
+
+      - name: 'Build app'
+        run: bun run build
+
       - uses: softprops/action-gh-release@v1
         with:
           files: |

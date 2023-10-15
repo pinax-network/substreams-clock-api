@@ -2,8 +2,8 @@ import { describe, expect, it, beforeAll } from 'bun:test';
 import { ZodError } from 'zod';
 
 import config from '../config';
-import { generateApp }  from '../index';
 import { banner } from "../banner";
+import { generateApp }  from '../index';
 import { supportedChainsQuery, timestampQuery } from "../queries";
 import {
     BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema, SupportedChainsQueryResponseSchema
@@ -121,7 +121,7 @@ describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => 
         expect(json.error.issues[0].code).toBe('invalid_enum_value');
     });
 
-    it.each(['', 'abc'])('Should fail on missing or invalid timestamp parameter: timestamp=%s', async (timestamp: string) => {
+    it.each(['', 'abc', '$,$'])('Should fail on missing or invalid timestamp parameter: timestamp=%s', async (timestamp: string) => {
         const res = await app.request(`/${valid_chain}/blocknum?timestamp=${timestamp}`);
         expect(res.status).toBe(400);
 

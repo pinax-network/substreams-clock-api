@@ -2,7 +2,7 @@ import { z } from '@hono/zod-openapi';
 import { HTTPException } from 'hono/http-exception';
 
 import config from './config';
-import { BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema} from './schemas';
+import { BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema } from './schemas';
 
 async function makeQuery(query: string) {
     const response = await fetch(`${config.DB_HOST}/?default_format=JSONColumns`, {
@@ -29,8 +29,8 @@ async function makeQuery(query: string) {
     return json;
 }
 
-export async function timestampQuery(blockchain: string, blocknum: number) {
-    const query = `SELECT timestamp FROM ${config.DB_NAME} WHERE (blockchain == '${blockchain}') AND (blocknum == ${blocknum})`; // TODO: Replace with IN clause
+export async function timestampQuery(blockchain: string, blocknum: number | number[]) {
+    const query = `SELECT timestamp FROM ${config.DB_NAME} WHERE (blockchain == '${blockchain}') AND (blocknum IN (${blocknum.toString()}))`;
     const json = await makeQuery(query);
 
     return {

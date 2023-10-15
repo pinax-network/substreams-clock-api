@@ -5,6 +5,22 @@ import { supportedChainsQuery } from './queries';
 const supportedChains = await supportedChainsQuery();
 const z_blocknum = z.coerce.number().positive();
 const z_timestamp = z.coerce.date();
+// Adapted from https://stackoverflow.com/a/75212079
+const convertBlocknumArray = <T extends z.ZodType<Array<number>>>(schema: T) => {
+    return z.preprocess((obj) => {
+        if (Array.isArray(obj)) {
+            return obj;
+        } else if (typeof obj === "string") {
+            return obj.split(",").map((v: string) => {
+                const parsed = z_blocknum.safeParse(v);
+                if (parsed.success)
+                    return parsed.data;
+                else
+                    return z.NEVER;
+            });
+        }
+    }, schema);
+};
 
 export const BlockchainSchema = z.object({
     chain: z.enum(supportedChains)
@@ -19,7 +35,11 @@ export const BlockchainSchema = z.object({
 export type BlockchainSchema = z.infer<typeof BlockchainSchema>;
 
 export const BlocknumSchema = z.object({
-    block_number: z_blocknum.openapi({
+    block_number: z.union([
+        z_blocknum,
+        convertBlocknumArray(z_blocknum.array().nonempty().max(10))
+    ])
+    .openapi({
         param: {
             name: 'block_number',
             in: 'query',

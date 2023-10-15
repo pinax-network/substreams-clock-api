@@ -16,8 +16,15 @@ jobs:
           bun-version: latest
       - run: bun install
       - run: bun test
+        env:
+            HOSTNAME: ${{ vars.HOSTNAME }}
+            PORT: ${{ vars.PORT }}
+            DB_HOST: ${{ vars.DB_HOST }}
+            DB_NAME: ${{ secrets.DB_NAME }}
+            DB_USERNAME: ${{ secrets.USERNAME }}
+            DB_PASSWORD: ''
       - run: bun run build
-      # - uses: softprops/action-gh-release@v1
-      #   with:
-      #     files: |
-      #       substreams-clock-api
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            substreams-clock-api

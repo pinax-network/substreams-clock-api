@@ -12,7 +12,7 @@ type JSONObjectEachRow = {
 };
 
 async function makeQuery(query: string, format: string = 'JSONObjectEachRow') {
-    const response = await fetch(`${config.DB_HOST}/?default_format=${format}`, {
+    const response = await fetch(`${config.dbHost}/?default_format=${format}`, {
         method: "POST",
         body: query,
         headers: { "Content-Type": "text/plain" },
@@ -37,7 +37,7 @@ async function makeQuery(query: string, format: string = 'JSONObjectEachRow') {
 }
 
 export async function timestampQuery(blockchain: string, blocknum: number | number[]) { // TODO: Merge `timestampQuery` / `blocknumQuery`
-    const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.DB_NAME} WHERE (blockchain == '${blockchain}') AND (blocknum IN (${blocknum.toString()}))`;
+    const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.name} WHERE (blockchain == '${blockchain}') AND (blocknum IN (${blocknum.toString()}))`;
     const json = await makeQuery(query);
 
     return BlocktimeQueryResponsesSchema.parse(
@@ -54,7 +54,7 @@ export async function timestampQuery(blockchain: string, blocknum: number | numb
 
 export async function blocknumQuery(blockchain: string, timestamp: Date | Date[]) {
     timestamp = Array.isArray(timestamp) ? timestamp : [timestamp];
-    const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.DB_NAME} WHERE (blockchain == '${blockchain}') AND (timestamp IN (${
+    const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.name} WHERE (blockchain == '${blockchain}') AND (timestamp IN (${
         timestamp.map((t) => '\'' + t.toISOString().replace('T', ' ').substring(0, 19) + '\'').toString()
     }))`; // TODO: Find closest instead of matching timestamp or another route ?
     const json = await makeQuery(query);
@@ -72,7 +72,7 @@ export async function blocknumQuery(blockchain: string, timestamp: Date | Date[]
 }
 
 export async function currentBlocknumQuery(blockchain: string) {
-    const query = `SELECT MAX(blocknum) AS current FROM ${config.DB_NAME} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
+    const query = `SELECT MAX(blocknum) AS current FROM ${config.name} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
     const json = await makeQuery(query);
 
     return SingleBlocknumQueryResponseSchema.parse({
@@ -82,7 +82,7 @@ export async function currentBlocknumQuery(blockchain: string) {
 }
 
 export async function finalBlocknumQuery(blockchain: string) {
-    /*const query = `SELECT MAX(blocknum) as final FROM ${config.DB_NAME} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
+    /*const query = `SELECT MAX(blocknum) as final FROM ${config.name} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
     const json = await makeQuery(query);
 
     return SingleBlocknumQueryResponseSchema.parse({
@@ -94,7 +94,7 @@ export async function finalBlocknumQuery(blockchain: string) {
 }
 
 export async function supportedChainsQuery() {
-    const query = `SELECT DISTINCT blockchain FROM ${config.DB_NAME}`;
+    const query = `SELECT DISTINCT blockchain FROM ${config.name}`;
     // Required for returning a const value in order to make z.enum() work in the schema definitions
     const json = await makeQuery(query, 'JSONColumns');
 

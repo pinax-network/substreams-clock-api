@@ -1,7 +1,17 @@
 import { describe, expect, it, afterAll } from 'bun:test';
-import config, { decode } from '../config';
+import config, {
+	DEFAULT_PORT,
+	DEFAULT_HOSTNAME,
+	DEFAULT_DB_HOST,
+	DEFAULT_DB_NAME,
+	DEFAULT_DB_USERNAME,
+	DEFAULT_DB_PASSWORD,
+	DEFAULT_MAX_ELEMENTS_QUERIES,
+	DEFAULT_VERBOSE,
+	decode,
+} from '../config';
 
-describe('Config from .env', () => {
+describe('Commander', () => {
 	const OLD_ENV = process.env;
 
 	afterAll(() => {
@@ -12,9 +22,17 @@ describe('Config from .env', () => {
 		expect(config).toMatchObject(process.env);
 	});
 
-	it('Should throw on missing .env variables', () => {
-		const { PORT, ...wrong_env } = process.env; // wrong_env will be missing required field PORT
-
-		expect(() => decode(wrong_env)).toThrow();
+	it('Should load default values with no arguments set', () => {
+		expect(process.argv).toHaveLength(2); // Bun exec and program name
+		expect(config).toMatchObject({
+			port: DEFAULT_PORT,
+			hostname: DEFAULT_HOSTNAME,
+			dbHost: DEFAULT_DB_HOST,
+			name: DEFAULT_DB_NAME,
+			username: DEFAULT_DB_USERNAME,
+			password: DEFAULT_DB_PASSWORD,
+			maxElementsQueried: DEFAULT_MAX_ELEMENTS_QUERIES,
+			verbose: DEFAULT_VERBOSE
+		});
 	});
 });

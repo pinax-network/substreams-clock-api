@@ -1,14 +1,15 @@
 import { describe, expect, it, beforeAll } from 'bun:test';
 import { ZodError } from 'zod';
 
-import app from '../index';
 import config from '../config';
+import { generateApp }  from '../index';
 import { banner } from "../banner";
 import { supportedChainsQuery, timestampQuery } from "../queries";
 import {
     BlocktimeQueryResponseSchema, SingleBlocknumQueryResponseSchema, SupportedChainsQueryResponseSchema
 } from '../schemas';
 
+const app = generateApp();
 const supportedChains = await supportedChainsQuery();
 
 describe('Index page (/)', () => {
@@ -84,8 +85,8 @@ describe('Timestamp query page (/{chain}/timestamp?block_number=<block number>)'
         expect(json.error.issues[0].code).toBe('too_small');
     });
 
-    it(`Should not allow more than the maximum number of elements to be queried (${config.MAX_ELEMENTS_QUERIED})`, async () => {
-        const res = await app.request(`/${valid_chain}/timestamp?block_number=${Array(config.MAX_ELEMENTS_QUERIED + 1).fill(valid_blocknum).toString()}`);
+    it(`Should not allow more than the maximum number of elements to be queried (${config.maxElementsQueried})`, async () => {
+        const res = await app.request(`/${valid_chain}/timestamp?block_number=${Array(config.maxElementsQueried + 1).fill(valid_blocknum).toString()}`);
         expect(res.status).toBe(400);
 
         const json = await res.json();
@@ -130,8 +131,8 @@ describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => 
         expect(json.error.issues[0].unionErrors[0].issues[0].code).toBe('invalid_date');
     });
 
-    it(`Should not allow more than the maximum number of elements to be queried (${config.MAX_ELEMENTS_QUERIED})`, async () => {
-        const res = await app.request(`/${valid_chain}/blocknum?timestamp=${Array(config.MAX_ELEMENTS_QUERIED + 1).fill(valid_timestamp).toString()}`);
+    it(`Should not allow more than the maximum number of elements to be queried (${config.maxElementsQueried})`, async () => {
+        const res = await app.request(`/${valid_chain}/blocknum?timestamp=${Array(config.maxElementsQueried + 1).fill(valid_timestamp).toString()}`);
         expect(res.status).toBe(400);
 
         const json = await res.json();

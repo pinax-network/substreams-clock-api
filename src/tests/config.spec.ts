@@ -22,7 +22,7 @@ describe('Commander', () => {
 		expect(config).toMatchObject(process.env);
 	});
 
-	it.skip('Should load default values with no arguments set', () => {
+	it('Should load default values with no arguments set', () => {
 		expect(process.argv).toHaveLength(2); // Bun exec and program name
 		expect(config).toMatchObject({
 			port: DEFAULT_PORT,

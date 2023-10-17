@@ -21,7 +21,7 @@ const CommanderSchema = z.object({
     name: z.string().default(DEFAULT_DB_NAME),
     username: z.string().default(DEFAULT_DB_USERNAME),
     password: z.string().default(DEFAULT_DB_PASSWORD),
-    maxElementsQueried: z.coerce.number().default(DEFAULT_MAX_ELEMENTS_QUERIES).describe(
+    maxElementsQueried: z.coerce.number().gte(2).default(DEFAULT_MAX_ELEMENTS_QUERIES).describe(
         'Maximum number of query elements when using arrays as parameters'
     )
 });
@@ -37,12 +37,13 @@ const opts = new Command()
     .showHelpAfterError()
     .addOption(new Option("--port <int>", "Server listen on HTTP port").default(DEFAULT_PORT).env("PORT"))
     .addOption(new Option("--hostname <string>", "Server listen on HTTP hostname").default(DEFAULT_HOSTNAME).env("HOST"))
-    .addOption(new Option("--db-host <string>", "Clickhouse DB HTTP hostname").default(DEFAULT_DB_HOST).env("dbHost"))
+    .addOption(new Option("--db-host <string>", "Clickhouse DB HTTP hostname").default(DEFAULT_DB_HOST).env("DB_HOST"))
     .addOption(new Option("--name <string>", "Clickhouse DB table name").default(DEFAULT_DB_NAME).env("DB_NAME"))
     .addOption(new Option("--username <string>", "Clickhouse DB username").default(DEFAULT_DB_USERNAME).env("DB_USERNAME"))
     .addOption(new Option("--password <string>", "Clickhouse DB password").default(DEFAULT_DB_PASSWORD).env("DB_PASSWORD"))
-    .addOption(new Option("--max-elements-queried <string>", "Maximum number of query elements when using arrays as parameters")
-        .default(DEFAULT_MAX_ELEMENTS_QUERIES).env("MAX_ELEMENTS_QUERIED"))
+    .addOption(new Option("--max-elements-queried <string>",
+        "Maximum number of query elements when using arrays as parameters (warning: setting a very high number can allow for intensive DB workload)"
+        ).default(DEFAULT_MAX_ELEMENTS_QUERIES).env("MAX_ELEMENTS_QUERIED"))
     .addOption(new Option("--verbose <boolean>", "Enable verbose logging").default(DEFAULT_VERBOSE).env("VERBOSE")) // TODO: Use verbose logging
     .version(pkg.version)
     .parse(process.argv).opts();

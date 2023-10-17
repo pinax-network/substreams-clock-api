@@ -42,23 +42,23 @@ function parseBlockTimeQueryResponse(json: JSONObjectEachRow): BlocktimeQueryRes
             [key: string]: Array<string>
         }) => {
         return BlocktimeQueryResponseSchema.parse({
-            blockchain: Object.values(r)[0][0],
+            chain: Object.values(r)[0][0],
             block_number: Object.values(r)[0][1],
             timestamp: Object.values(r)[0][2]
         });
     }));
 }
 
-export async function timestampQuery(blockchain: string, blocknum: number | number[]): Promise<BlocktimeQueryResponsesSchema> {
-    const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.name} WHERE (blockchain == '${blockchain}') AND (blocknum IN (${blocknum.toString()}))`;
+export async function timestampQuery(chain: string, block_number: number | number[]): Promise<BlocktimeQueryResponsesSchema> {
+    const query = `SELECT (chain, block_number, timestamp) FROM ${config.name} WHERE (chain == '${chain}') AND (block_number IN (${block_number.toString()}))`;
     const json = await makeQuery(query);
     
     return parseBlockTimeQueryResponse(json);
 }
 
-export async function blocknumQuery(blockchain: string, timestamp: Date | Date[]): Promise<BlocktimeQueryResponsesSchema> {
+export async function blocknumQuery(chain: string, timestamp: Date | Date[]): Promise<BlocktimeQueryResponsesSchema> {
     timestamp = Array.isArray(timestamp) ? timestamp : [timestamp];
-    const query = `SELECT (blockchain, blocknum, timestamp) FROM ${config.name} WHERE (blockchain == '${blockchain}') AND (timestamp IN (${
+    const query = `SELECT (chain, block_number, timestamp) FROM ${config.name} WHERE (chain == '${chain}') AND (timestamp IN (${
         timestamp.map((t) => '\'' + t.toISOString().replace('T', ' ').substring(0, 19) + '\'').toString() // Format dates to find them in DB (mock data)
     }))`; // TODO: Find closest instead of matching timestamp or another route ?
     const json = await makeQuery(query);
@@ -66,22 +66,22 @@ export async function blocknumQuery(blockchain: string, timestamp: Date | Date[]
     return parseBlockTimeQueryResponse(json)
 }
 
-export async function currentBlocknumQuery(blockchain: string) {
-    const query = `SELECT MAX(blocknum) AS current FROM ${config.name} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
+export async function currentBlocknumQuery(chain: string) {
+    const query = `SELECT MAX(block_number) AS current FROM ${config.name} GROUP BY chain HAVING (chain == '${chain}')`;
     const json = await makeQuery(query);
 
     return SingleBlocknumQueryResponseSchema.parse({
-        chain: blockchain,
+        chain,
         block_number: Object.values(json as JSONObjectEachRow)[0].current,
     });
 }
 
-export async function finalBlocknumQuery(blockchain: string) {
-    /*const query = `SELECT MAX(blocknum) as final FROM ${config.name} GROUP BY blockchain HAVING (blockchain == '${blockchain}')`;
+export async function finalBlocknumQuery(chain: string) {
+    /*const query = `SELECT MAX(block_number) as final FROM ${config.name} GROUP BY chain HAVING (chain == '${chain}')`;
     const json = await makeQuery(query);
 
     return SingleBlocknumQueryResponseSchema.parse({
-        chain: blockchain,
+        chain
         block_number: Object.values(json as JSONObjectEachRow)[0].final,
     });
     */
@@ -89,10 +89,10 @@ export async function finalBlocknumQuery(blockchain: string) {
 }
 
 export async function supportedChainsQuery() {
-    const query = `SELECT DISTINCT blockchain FROM ${config.name}`;
+    const query = `SELECT DISTINCT chain FROM ${config.name}`;
 
     // Required format for returning a const value in order to make z.enum() work in the schema definitions
     const json = await makeQuery(query, 'JSONColumns');
 
-    return json.blockchain
+    return json.chain
 }

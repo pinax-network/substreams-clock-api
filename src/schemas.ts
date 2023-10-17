@@ -87,7 +87,7 @@ export const TimestampSchema = z.object({
 // Represents a block number <> timestamp conversion output for `/{c}/timestamp` and `/{c}/blocknum` endpoints
 // It can either be a single output for each field or an array of outputs
 export const BlocktimeQueryResponseSchema = z.object({
-    blockchain: z.enum(supportedChains).openapi({ example: 'EOS' }),
+    chain: z.enum(supportedChains).openapi({ example: 'EOS' }),
     block_number: z_blocknum.openapi({ example: 1337 }),
     timestamp: z.union([
         z_timestamp.openapi({ example: new Date().toISOString() }),

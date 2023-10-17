@@ -28,7 +28,7 @@ Additionnaly to pull data directly from a substream:
 
 ## Quickstart
 
-```bash
+```console
 $ bun install
 $ bun dev
 ```
@@ -37,9 +37,9 @@ $ bun dev
 
 > Linux Only
 
-```
+```console
 $ wget https://github.com/pinax-network/substreams-clock-api/releases/download/v0.2.0/substreams-clock-api
-$ chmod +x ./substreams-sink-websockets
+$ chmod +x ./substreams-clock-api
 ```
 
 ## `.env` Environment variables
@@ -56,7 +56,7 @@ DB_PASSWORD=
 
 ## Help
 
-```bash
+```console
 $ ./substreams-clock-api --help
 Usage: substreams-clock-api [options]
 

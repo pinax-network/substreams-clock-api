@@ -19,6 +19,11 @@
 | GET `/{chain}/timestamp?block_number=`    | Timestamp query from a block number or array (comma-separated)
 | GET `/{chain}/blocknum?timestamp=`        | Block number query from a timestamp or array (comma-separated)
 
+**Important note regarding `timestamp` query parameter**
+
+Expects **UTC** datetime or UNIX-like timestamp for matching the data in the Clickhouse DB. Passing `timestamp` data with additional timezone information (such as `...T...Z` or `±hh`) will likely fail the query to match (unless it corresponds to UTC0).
+
+
 ## Requirements
 
 - [Clickhouse](clickhouse.com/)

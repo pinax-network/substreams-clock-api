@@ -56,7 +56,7 @@ export async function timestampQuery(chain: string, block_number: number | numbe
     return parseBlockTimeQueryResponse(json);
 }
 
-export async function blocknumQuery(chain: string, timestamp: Date | Date[]): Promise<BlocktimeQueryResponsesSchema> {
+export async function blocknumQuery(chain: string, timestamp: string | string[]): Promise<BlocktimeQueryResponsesSchema> {
     timestamp = Array.isArray(timestamp) ? timestamp : [timestamp];
     const query = `SELECT (chain, block_number, timestamp) FROM ${config.name} WHERE (chain == '${chain}') AND (timestamp IN (${
         timestamp.map((t) => `'${t}'`).toString()

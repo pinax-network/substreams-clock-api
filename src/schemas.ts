@@ -3,6 +3,11 @@ import { z } from '@hono/zod-openapi';
 import config from './config';
 import { supportedChainsQuery } from './queries';
 
+// Removes milliseconds and 'Z' from ISO string to match Clickhouse DB insert
+function toTimestampDBFormat(d: Date) {
+    return d.toISOString().split('.')[0];
+}
+
 const supportedChains = await supportedChainsQuery();
 
 // Base types
@@ -12,7 +17,7 @@ const z_timestamp = z.coerce.date().transform((t: Date) => {
         Date.UTC(t.getFullYear(), t.getMonth(), t.getDate(), t.getHours(), t.getMinutes(), t.getSeconds())
     );
 
-    return toUTC.toISOString().split('.')[0]; // Remove milliseconds and 'Z' from ISO string
+    return toTimestampDBFormat(toUTC);
 });
 
 // Adapted from https://stackoverflow.com/a/75212079
@@ -31,7 +36,7 @@ const blocknumsFromStringArray = <T extends z.ZodType<Array<z.infer<typeof z_blo
 };
 
 // Same as above for timestamp parsing
-const timestampsFromStringArray = <T extends z.ZodType<Array<z.infer<typeof z_timestamp>>>>(schema: T) => {
+const timestampsFromStringArray = <T extends z.ZodTypeAny>(schema: T) => {
     return z.preprocess((obj) => {
         if (Array.isArray(obj)) {
             return obj;
@@ -86,7 +91,7 @@ export const TimestampSchema = z.object({
             name: 'timestamp',
             in: 'query',
         },
-        example: new Date().toISOString()
+        example: Date.now().toString()
     })
 });
 
@@ -96,8 +101,8 @@ export const BlocktimeQueryResponseSchema = z.object({
     chain: z.enum(supportedChains).openapi({ example: 'EOS' }),
     block_number: z_blocknum.openapi({ example: 1337 }),
     timestamp: z.union([
-        z_timestamp.openapi({ example: new Date().toISOString() }),
-        z_timestamp.array().openapi({ example: [new Date(), new Date(0)] }),
+        z_timestamp.openapi({ example: Date.now().toString() }),
+        z_timestamp.array().openapi({ example: [Date.now().toString(), toTimestampDBFormat(new Date(0))] }),
     ])
 }).openapi('BlocktimeQueryResponse');
 

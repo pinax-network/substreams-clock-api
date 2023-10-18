@@ -59,7 +59,7 @@ export async function timestampQuery(chain: string, block_number: number | numbe
 export async function blocknumQuery(chain: string, timestamp: Date | Date[]): Promise<BlocktimeQueryResponsesSchema> {
     timestamp = Array.isArray(timestamp) ? timestamp : [timestamp];
     const query = `SELECT (chain, block_number, timestamp) FROM ${config.name} WHERE (chain == '${chain}') AND (timestamp IN (${
-        timestamp.map((t) => '\'' + t.toISOString().replace('T', ' ').substring(0, 19) + '\'').toString() // Format dates to find them in DB (mock data)
+        timestamp.map((t) => `'${t}'`).toString()
     }))`; // TODO: Find closest instead of matching timestamp or another route ?
     const json = await makeQuery(query);
 

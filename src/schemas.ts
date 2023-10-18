@@ -7,7 +7,13 @@ const supportedChains = await supportedChainsQuery();
 
 // Base types
 const z_blocknum = z.coerce.number().positive();
-const z_timestamp = z.coerce.date();
+const z_timestamp = z.coerce.date().transform((t: Date) => {
+    const toUTC = new Date(
+        Date.UTC(t.getFullYear(), t.getMonth(), t.getDate(), t.getHours(), t.getMinutes(), t.getSeconds())
+    );
+
+    return toUTC.toISOString().split('.')[0]; // Remove milliseconds and 'Z' from ISO string
+});
 
 // Adapted from https://stackoverflow.com/a/75212079
 // Enforces parsing capability from an array of blocknum strings returned by Clickhouse DB

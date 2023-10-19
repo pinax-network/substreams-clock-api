@@ -57,4 +57,16 @@ describe('API metrics', () => {
         expect(json.length).toBeGreaterThan(0);
         expect(after).toBe(previous + json.length);
     });
+
+    it('Should log total queries', async () => {
+        const num_queries = 5;
+        const previous = await sumMetric('total_queries');
+        
+        for (let i = 0; i < num_queries; ++i)
+            await app.request('/');
+
+        const after = await sumMetric('total_queries');
+
+        expect(after).toBe(previous + num_queries);
+    });
 });

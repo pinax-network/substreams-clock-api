@@ -2,6 +2,7 @@ import { z } from '@hono/zod-openapi';
 import { HTTPException } from 'hono/http-exception';
 
 import config from './config';
+import { api_rows_received } from './prometheus';
 import { BlockchainSchema, BlocktimeQueryResponseSchema, BlocktimeQueryResponsesSchema, SingleBlocknumQueryResponseSchema } from './schemas';
 
 // Describe the default returned data format `JSONObjectEachRow` from the Clickhouse DB
@@ -33,6 +34,7 @@ async function makeQuery(query: string, format: string = 'JSONObjectEachRow'): P
         });
     }
 
+    api_rows_received.inc(Object.keys(json).length);
     return json;
 }
 
@@ -85,7 +87,6 @@ export async function finalBlocknumQuery(chain: string) {
         block_number: Object.values(json as JSONObjectEachRow)[0].final,
     });
     */
-    return { todo: 'Not Implemented', data: [[null]] };
 }
 
 export async function supportedChainsQuery() {

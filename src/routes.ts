@@ -21,6 +21,21 @@ export const healthCheckRoute = createRoute({
     },
 });
 
+export const metricsRoute = createRoute({
+    method: 'get',
+    path: '/metrics',
+    responses: {
+        200: {
+            /*content: {
+                'application/json': {
+                    schema: schemas.SupportedChainsQueryResponseSchema,
+                },
+            },*/
+            description: 'Prometheus metrics.',
+        },
+    },
+});
+
 export const supportedChainsRoute = createRoute({
     method: 'get',
     path: '/chains',
@@ -49,7 +64,7 @@ export const blocknumQueryRoute = createRoute({
         200: {
             content: {
                 'application/json': {
-                    schema: schemas.BlocktimeQueryResponseSchema,
+                    schema: schemas.BlocktimeQueryResponsesSchema,
                 },
             },
             description: 'Retrieve the block number associated with the given timestamp on the blockchain.',
@@ -68,7 +83,7 @@ export const timestampQueryRoute = createRoute({
         200: {
             content: {
                 'application/json': {
-                    schema: schemas.BlocktimeQueryResponseSchema,
+                    schema: schemas.BlocktimeQueryResponsesSchema,
                 },
             },
             description: 'Retrieve the timestamp associated with the given block number on the blockchain.',

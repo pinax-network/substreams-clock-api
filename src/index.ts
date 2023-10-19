@@ -29,8 +29,7 @@ export function generateApp() {
     const app = new OpenAPIHono({
         defaultHook: (result, c) => {
             if (!result.success) {
-                metrics.api_failed_queries.labels({ path: c.req.url }).inc();
-                metrics.api_validation_errors.inc();                
+                metrics.api_validation_errors.labels({ path: c.req.url }).inc();
 
                 return {
                     response: c.json(result, 422)
@@ -41,6 +40,11 @@ export function generateApp() {
 
     if ( config.NODE_ENV !== "production" )
         app.use('*', logger()); // TODO: Custom logger based on config.verbose
+
+    app.use('*', async (c, next) => {
+        metrics.api_total_queries.inc();
+        await next();
+    });
 
     app.use('/swagger/*', serveStatic({ root: './' }));
 
@@ -53,7 +57,7 @@ export function generateApp() {
     });
 
     app.notFound((c) => {
-        metrics.api_failed_queries.labels({ path: c.req.url }).inc();
+        metrics.api_notfound_errors.labels({ path: c.req.url }).inc();
 
         return c.json({ error_message: 'Not found' }, 404);
     });
@@ -67,8 +71,7 @@ export function generateApp() {
             error_code = err.status;
         }
 
-        metrics.api_server_errors.inc();
-        metrics.api_failed_queries.labels({ path: c.req.url }).inc();
+        metrics.api_server_errors.labels({ path: c.req.url }).inc();
         return c.json({ error_message }, error_code);
     });
 

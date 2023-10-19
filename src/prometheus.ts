@@ -31,10 +31,11 @@ export async function getSingleMetric(name: string) {
 }
 
 // REST API metrics
-export const api_server_errors = registerCounter('server_errors', 'Total of server errors');
-export const api_validation_errors = registerCounter('validation_errors', 'Total of query parameters validation errors');
+export const api_server_errors = registerCounter('server_errors', 'Total of server errors', ['path']);
+export const api_validation_errors = registerCounter('validation_errors', 'Total of query parameters validation errors', ['path']);
+export const api_notfound_errors = registerCounter('notfound_errors', 'Total of not found errors', ['path']);
 export const api_successful_queries = registerCounter('successful_queries', 'Total of successful queries', ['path']);
-export const api_failed_queries = registerCounter('failed_queries', 'Total of failed queries', ['path']);
+export const api_total_queries = registerCounter('total_queries', 'Total of queries');
 export const api_rows_received = registerCounter('rows_received', 'Total of rows received from Clickhouse DB');
 
 // Gauge example

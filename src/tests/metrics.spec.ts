@@ -25,15 +25,13 @@ describe('API metrics', () => {
 
     it.each([
         '/dummy',
-        `/${valid_chain}/timestamp`,
-        `/${valid_chain}/timestamp?block_number=-1`,
-        `/${valid_chain}/blocknum?timestamp=abc`,
-    ])('Should log failed queries: %s', async (path: string) => {
-        const previous = await sumMetric('failed_queries');
+        `/${valid_chain}/dummy`,
+    ])('Should log not found queries: %s', async (path: string) => {
+        const previous = await sumMetric('notfound_errors');
         const res = await app.request(path);
-        const after = await sumMetric('failed_queries');
+        const after = await sumMetric('notfound_errors');
 
-        expect([404, 422, 500]).toContain(res.status);
+        expect(res.status).toBe(404);
         expect(after).toBe(previous + 1);
     });
 

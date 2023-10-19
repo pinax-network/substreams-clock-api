@@ -26,11 +26,6 @@ export const metricsRoute = createRoute({
     path: '/metrics',
     responses: {
         200: {
-            /*content: {
-                'application/json': {
-                    schema: schemas.SupportedChainsQueryResponseSchema,
-                },
-            },*/
             description: 'Prometheus metrics.',
         },
     },

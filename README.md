@@ -51,32 +51,35 @@ $ chmod +x ./substreams-clock-api
 
 ```env
 # Optional
-PORT=8080
-HOSTNAME=localhost
+HTTP_PORT=8080
+HTTP_HOSTNAME=localhost
 DB_HOST=http://localhost:8123
-DB_NAME=demo
+DB_TABLE=block
 DB_USERNAME=default
 DB_PASSWORD=
+MAX_ELEMENTS_QUERIED=10
+VERBOSE=false
 ```
 
 ## Help
 
 ```console
-$ ./substreams-clock-api --help
+$ ./substreams-clock-api -h                                                                                     
 Usage: substreams-clock-api [options]
 
 Timestamps <> Block numbers conversion for your favorite chains
 
 Options:
-  --port <int>                     Server listen on HTTP port (default: "8080", env: PORT)
-  --hostname <string>              Server listen on HTTP hostname (default: "localhost", env: HOST)
-  --db-host <string>               Clickhouse DB HTTP hostname (default: "http://localhost:8123", env: dbHost)
-  --name <string>                  Clickhouse DB table name (default: "demo", env: DB_NAME)
+  -V, --version                    output the version number
+  -p, --port <number>              Server listen on HTTP port (default: "8080", env: HTTP_PORT)
+  --hostname <string>              Server HTTP hostname (default: "localhost", env: HTTP_HOST)
+  --db-host <string>               Clickhouse DB HTTP hostname (default: "http://localhost:8123", env: DB_HOST)
+  --table <string>                 Clickhouse DB table name (default: "block", env: DB_TABLE)
   --username <string>              Clickhouse DB username (default: "default", env: DB_USERNAME)
   --password <string>              Clickhouse DB password (default: "", env: DB_PASSWORD)
-  --max-elements-queried <string>  Maximum number of query elements when using arrays as parameters (default: 10, env: MAX_ELEMENTS_QUERIED)
-  --verbose <boolean>              Enable verbose logging (default: false, env: VERBOSE)
-  -V, --version                    output the version number
+  --max-elements-queried <string>  Maximum number of elements allowed when using arrays in query parameters (warning: setting a very high number can allow for
+                                   intensive DB workload) (default: 10, env: MAX_ELEMENTS_QUERIED)
+  --verbose                        Enable verbose logging (default: false, env: VERBOSE)
   -h, --help                       display help for command
 ```
 

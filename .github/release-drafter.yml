@@ -31,6 +31,8 @@ template: |
   ## Changes
   $CHANGES
 
+  **Full Changelog**: https://github.com/pinax-network/substreams-clock-api/compare/$RESOLVED_VERSION...$PREVIOUS_TAG
+
 autolabeler:
   - label: 'documentation'
     files:

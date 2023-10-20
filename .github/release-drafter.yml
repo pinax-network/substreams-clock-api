@@ -35,6 +35,8 @@ template: |
 
 autolabeler:
   - label: 'documentation'
+    branch:
+      - '/docs\/.+/'
     files:
       - '*.md'
   - label: 'bug'

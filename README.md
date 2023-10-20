@@ -11,7 +11,7 @@
 | GET `/`                                   | Banner
 | GET `/chains`                             | Returns all available `chains`
 | GET `/health`                             | Health check
-| ~~GET `/metrics`~~ (SOON)                 | ~~Prometheus metrics~~
+| GET `/metrics`                            | Prometheus metrics
 | GET `/openapi`                            | [OpenAPI v3 JSON](https://spec.openapis.org/oas/v3.0.0)
 | GET `/swagger`                            | [Swagger UI](https://swagger.io/resources/open-api/)
 | GET `/{chain}/current`                   | Latest block number on the chain

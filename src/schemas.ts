@@ -1,6 +1,6 @@
 import { z } from '@hono/zod-openapi';
 
-import config from './config';
+import { config } from './config';
 import { supportedChainsQuery } from './queries';
 
 // Removes milliseconds and 'Z' from ISO string to match Clickhouse DB insert

@@ -1,7 +1,7 @@
 import { z } from '@hono/zod-openapi';
 import { HTTPException } from 'hono/http-exception';
 
-import config from './config';
+import { config } from './config';
 import { api_rows_received } from './prometheus';
 import { BlockchainSchema, BlocktimeQueryResponseSchema, BlocktimeQueryResponsesSchema, SingleBlocknumQueryResponseSchema } from './schemas';
 
@@ -52,7 +52,7 @@ function parseBlockTimeQueryResponse(json: JSONObjectEachRow): BlocktimeQueryRes
 }
 
 export async function timestampQuery(chain: string, block_number: number | number[]): Promise<BlocktimeQueryResponsesSchema> {
-    const query = `SELECT (chain, block_number, timestamp) FROM ${config.name} WHERE (chain == '${chain}') AND (block_number IN (${block_number.toString()}))`;
+    const query = `SELECT (chain, block_number, timestamp) FROM ${config.table} WHERE (chain == '${chain}') AND (block_number IN (${block_number.toString()}))`;
     const json = await makeQuery(query);
     
     return parseBlockTimeQueryResponse(json);
@@ -60,7 +60,7 @@ export async function timestampQuery(chain: string, block_number: number | numbe
 
 export async function blocknumQuery(chain: string, timestamp: string | string[]): Promise<BlocktimeQueryResponsesSchema> {
     timestamp = Array.isArray(timestamp) ? timestamp : [timestamp];
-    const query = `SELECT (chain, block_number, timestamp) FROM ${config.name} WHERE (chain == '${chain}') AND (timestamp IN (${
+    const query = `SELECT (chain, block_number, timestamp) FROM ${config.table} WHERE (chain == '${chain}') AND (timestamp IN (${
         timestamp.map((t) => `'${t}'`).toString()
     }))`; // TODO: Find closest instead of matching timestamp or another route ?
     const json = await makeQuery(query);
@@ -69,7 +69,7 @@ export async function blocknumQuery(chain: string, timestamp: string | string[])
 }
 
 export async function currentBlocknumQuery(chain: string) {
-    const query = `SELECT MAX(block_number) AS current FROM ${config.name} GROUP BY chain HAVING (chain == '${chain}')`;
+    const query = `SELECT MAX(block_number) AS current FROM ${config.table} GROUP BY chain HAVING (chain == '${chain}')`;
     const json = await makeQuery(query);
 
     return SingleBlocknumQueryResponseSchema.parse({
@@ -79,7 +79,7 @@ export async function currentBlocknumQuery(chain: string) {
 }
 
 export async function finalBlocknumQuery(chain: string) {
-    /*const query = `SELECT MAX(block_number) as final FROM ${config.name} GROUP BY chain HAVING (chain == '${chain}')`;
+    /*const query = `SELECT MAX(block_number) as final FROM ${config.table} GROUP BY chain HAVING (chain == '${chain}')`;
     const json = await makeQuery(query);
 
     return SingleBlocknumQueryResponseSchema.parse({
@@ -90,7 +90,7 @@ export async function finalBlocknumQuery(chain: string) {
 }
 
 export async function supportedChainsQuery() {
-    const query = `SELECT DISTINCT chain FROM ${config.name}`;
+    const query = `SELECT DISTINCT chain FROM ${config.table}`;
 
     // Required format for returning a const value in order to make z.enum() work in the schema definitions
     const json = await makeQuery(query, 'JSONColumns');

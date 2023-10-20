@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeAll } from 'bun:test';
 
-import config from '../config';
+import { config } from '../config';
 import { banner } from "../banner";
 import { generateApp }  from '../index';
 import { supportedChainsQuery, timestampQuery } from "../queries";

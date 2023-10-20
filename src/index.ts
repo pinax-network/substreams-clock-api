@@ -7,7 +7,7 @@ import { type Serve } from "bun";
 
 import * as routes from './routes';
 import * as metrics from "./prometheus";
-import config from "./config";
+import { config } from "./config";
 import { http_logger } from "./logger";
 import pkg from "../package.json";
 import {

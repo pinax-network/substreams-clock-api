@@ -3,10 +3,12 @@ import { type Context, type TypedResponse } from 'hono';
 import { serveStatic } from 'hono/bun'
 import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
+import { type Serve } from "bun";
 
 import * as routes from './routes';
 import * as metrics from "./prometheus";
 import config from "./config";
+import { http_logger } from "./logger";
 import pkg from "../package.json";
 import {
     type BlockchainSchema, type BlocknumSchema, type TimestampSchema,
@@ -17,6 +19,8 @@ import { supportedChainsQuery, timestampQuery, blocknumQuery, currentBlocknumQue
 
 function JSONAPIResponseWrapper<T>(c: Context, res: T) {
     metrics.api_successful_queries.labels({ path: c.req.url }).inc();
+    http_logger.debug("Return data:", `\n${JSON.stringify(res, null, 4)}`);
+
     return {
         response: c.json(res)
     } as TypedResponse<T>;
@@ -38,12 +42,30 @@ export function generateApp() {
         },
     });
 
-    if ( config.NODE_ENV !== "production" )
-        app.use('*', logger()); // TODO: Custom logger based on config.verbose
+    if ( config.verbose )
+        http_logger.enable();
 
     app.use('*', async (c, next) => {
+        const start = Date.now();
+        const query_parameters = c.req.query();
+        const has_query_params = Object.keys(query_parameters).length > 0;
+
+        http_logger.info("-->", c.req.method, c.req.path, has_query_params ? `\n${JSON.stringify(query_parameters, null, 4)}` : "");
+
         metrics.api_total_queries.inc();
         await next();
+        
+        const delta = Date.now() - start;
+        const elapsed_time = delta < 1000 ? delta + 'ms' : Math.round(delta / 1000) + 's';
+
+        const method = c.req.method;
+        const path = c.req.path;
+        const status = c.res.status;
+
+        if (status !== 200)
+            http_logger.error("<--", `(${elapsed_time})`, method, status, path);
+        else
+            http_logger.info("<--", `(${elapsed_time})`, method, status, path);
     });
 
     app.use('/swagger/*', serveStatic({ root: './' }));
@@ -147,4 +169,4 @@ export default {
     port: config.port,
     hostname: config.hostname,
     fetch: generateApp().fetch
-};
+} as Serve;

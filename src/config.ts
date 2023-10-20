@@ -23,7 +23,8 @@ const CommanderSchema = z.object({
     password: z.string().default(DEFAULT_DB_PASSWORD),
     maxElementsQueried: z.coerce.number().gte(2).default(DEFAULT_MAX_ELEMENTS_QUERIES).describe(
         'Maximum number of query elements when using arrays as parameters'
-    )
+    ),
+    verbose: z.coerce.boolean().default(DEFAULT_VERBOSE),
 });
 
 export function decode(data: unknown) {
@@ -44,7 +45,7 @@ const opts = new Command()
     .addOption(new Option("--max-elements-queried <string>",
         "Maximum number of query elements when using arrays as parameters (warning: setting a very high number can allow for intensive DB workload)"
         ).default(DEFAULT_MAX_ELEMENTS_QUERIES).env("MAX_ELEMENTS_QUERIED"))
-    .addOption(new Option("--verbose <boolean>", "Enable verbose logging").default(DEFAULT_VERBOSE).env("VERBOSE")) // TODO: Use verbose logging
+    .addOption(new Option("--verbose", "Enable verbose logging").default(DEFAULT_VERBOSE).env("VERBOSE"))
     .version(pkg.version)
     .parse(process.argv).opts();
 

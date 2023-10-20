@@ -59,7 +59,7 @@ export const BlockchainSchema = z.object({
             name: 'chain',
             in: 'path',
         },
-        example: 'EOS',
+        examples: supportedChains,
     })
 });
 

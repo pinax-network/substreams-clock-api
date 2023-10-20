@@ -134,6 +134,7 @@ dist
 
 # Local clickhouse DB
 clickhouse/
+cursor.lock
 
 # CLI
 substreams-clock-api

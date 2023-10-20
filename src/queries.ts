@@ -79,14 +79,13 @@ export async function currentBlocknumQuery(chain: string) {
 }
 
 export async function finalBlocknumQuery(chain: string) {
-    /*const query = `SELECT MAX(block_number) as final FROM ${config.table} GROUP BY chain HAVING (chain == '${chain}')`;
+    const query = `SELECT MAX(block_number) as final FROM ${config.table} GROUP BY chain HAVING (chain == '${chain}') AND (final_block == true)`;
     const json = await makeQuery(query);
 
     return SingleBlocknumQueryResponseSchema.parse({
-        chain
+        chain,
         block_number: Object.values(json as JSONObjectEachRow)[0].final,
     });
-    */
 }
 
 export async function supportedChainsQuery() {

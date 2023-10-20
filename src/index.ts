@@ -156,11 +156,11 @@ export function generateApp() {
         return JSONAPIResponseWrapper<SingleBlocknumQueryResponseSchema>(c, await currentBlocknumQuery(chain));
     });
 
-    /*app.openapi(routes.finalBlocknumQueryRoute, async (c) => {
+    app.openapi(routes.finalBlocknumQueryRoute, async (c) => {
         const { chain } = c.req.valid('param') as BlockchainSchema;
 
         return JSONAPIResponseWrapper<SingleBlocknumQueryResponseSchema>(c, await finalBlocknumQuery(chain));
-    });*/
+    });
 
     return app;
 }

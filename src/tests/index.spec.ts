@@ -153,7 +153,7 @@ describe('Blocknum query page (/{chain}/blocknum?timestamp=<timestamp>)', () => 
     });
 });
 
-describe.each(['current'/*, 'final'*/])('Single blocknum query page (/{chain}/%s)', (query_type: string) => {
+describe.each(['current', 'final'])('Single blocknum query page (/{chain}/%s)', (query_type: string) => {
     it('Should fail on non-valid chains', async () => {
         const res = await app.request(`/dummy/${query_type}`);
         expect(res.status).toBe(422);

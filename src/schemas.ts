@@ -128,7 +128,7 @@ export const BlocktimeQueryResponsesSchema = BlocktimeQueryResponseSchema.array(
 
 export const SingleBlocknumQueryResponseSchema = z.intersection(
     BlockchainSchema,
-    BlocknumSchema,
+    z.object({ block_number: z_blocknum.nullish() }),
 )
 .describe('Represents a single block number output for `/current` and `/final` endpoints.')
 .openapi('SingleBlocknumQueryResponse');

@@ -2,7 +2,7 @@ import { describe, expect, it, beforeAll } from 'bun:test';
 import { AggregatorRegistry } from 'prom-client';
 
 import * as metrics from '../prometheus';
-import { generateApp }  from '../index';
+import { generateApp }  from '../../index';
 import { supportedChainsQuery } from "../queries";
 
 async function sumMetric(name: string) {

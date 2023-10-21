@@ -44,7 +44,7 @@ export const supportedChainsRoute = createRoute({
     },
 });
 
-// Note: OpenAPI and SwaggerUI routes are created directly in `index.ts`
+// Note: OpenAPI (`/openapi`) and SwaggerUI (`/swagger`) routes are created directly in `index.ts`
 
 export const blocknumQueryRoute = createRoute({
     method: 'get',
@@ -58,6 +58,13 @@ export const blocknumQueryRoute = createRoute({
             content: {
                 'application/json': {
                     schema: schemas.BlocktimeQueryResponsesSchema,
+                    examples: {
+                        single: { summary: 'Single', value: [{'chain': 'mainnet', 'block_number': 18394302, 'timestamp': '2023-10-20T21:45:11'}] },
+                        multiple: { summary: 'Multiple', value: [
+                            {'chain': 'mainnet', 'block_number': 18394302, 'timestamp': '2023-10-20T21:45:11'},
+                            {'chain': 'mainnet', 'block_number': 18395243, 'timestamp': '2023-10-21T23:22:53'}
+                        ]},
+                    }
                 },
             },
             description: 'Retrieve the block number associated with the given timestamp on the blockchain.',
@@ -77,6 +84,13 @@ export const timestampQueryRoute = createRoute({
             content: {
                 'application/json': {
                     schema: schemas.BlocktimeQueryResponsesSchema,
+                    examples: {
+                        single: { summary: 'Single', value: [{'chain': 'mainnet', 'block_number': 18394302, 'timestamp': '2023-10-20T21:45:11'}] },
+                        multiple: { summary: 'Multiple', value: [
+                            {'chain': 'mainnet', 'block_number': 18394302, 'timestamp': '2023-10-20T21:45:11'},
+                            {'chain': 'mainnet', 'block_number': 18395243, 'timestamp': '2023-10-21T23:22:53'}
+                        ]},
+                    }
                 },
             },
             description: 'Retrieve the timestamp associated with the given block number on the blockchain.',

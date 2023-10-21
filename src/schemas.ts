@@ -51,7 +51,6 @@ const timestampsFromStringArray = <T extends z.ZodTypeAny>(schema: T) => {
     }, schema);
 };
 
-// Represents the valid blockchain root path
 export const BlockchainSchema = z.object({
     chain: z.enum(supportedChains)
     .openapi({
@@ -61,10 +60,10 @@ export const BlockchainSchema = z.object({
         },
         examples: supportedChains,
     })
-});
+})
+.describe('Represents the valid blockchain(s) root path based on the data available in Clickhouse DB.')
+.openapi('BlockchainSchema');
 
-// Represents the timestamp query parameter for `/{c}/timestamp?blocknum=` endpoint
-// Supports array parsing via comma-separated values
 export const BlocknumSchema = z.object({
     block_number: z.union([
         z_blocknum,
@@ -74,13 +73,17 @@ export const BlocknumSchema = z.object({
         param: {
             name: 'block_number',
             in: 'query',
+            examples : {
+                single: { summary: 'Single', value: 1337 },
+                multiple: { summary: 'Multiple', description: `Up to ${config.maxElementsQueried} elements maximum`, value: [1337, 9999, 1231].toString() },
+            }
         },
-        example: 1337
     })
-});
+})
+.describe('Represents the timestamp query parameter for `/{chain}/timestamp?blocknum=` endpoint. Supports array parsing via comma-separated values.')
+.openapi('BlocknumSchema');
 
-// Represents the timestamp query parameter for `/{c}/blocknum?timestamp=` endpoint
-// Supports array parsing via comma-separated values
+const unix_timestamp_example = Date.now().toString();
 export const TimestampSchema = z.object({
     timestamp: z.union([
         z_timestamp,
@@ -90,34 +93,51 @@ export const TimestampSchema = z.object({
         param: {
             name: 'timestamp',
             in: 'query',
+            examples: {
+                unix: { summary: 'UNIX', value: unix_timestamp_example },
+                iso: {
+                    summary: 'ISO',
+                    description: 'Be wary of timezone information, the API expects timestamp to be in UTC',
+                    value: '2023-10-17T23:59:47Z'
+                },
+                full: { summary: 'Datetime', value: '2023-10-18 01:10:22' },
+                multiple: {
+                    summary: 'Multiple',
+                    description: `Up to ${config.maxElementsQueried} elements maximum`,
+                    value: ['2023-10-18 01:10:22', unix_timestamp_example]
+                },
+            }
         },
-        example: Date.now().toString()
     })
-});
+})
+.describe('Represents the timestamp query parameter for `/{chain}/blocknum?timestamp=` endpoint. Supports array parsing via comma-separated values.')
+.openapi('TimestampSchema');
 
-// Represents a block number <> timestamp conversion output for `/{c}/timestamp` and `/{c}/blocknum` endpoints
-// It can either be a single output for each field or an array of outputs
-export const BlocktimeQueryResponseSchema = z.object({
-    chain: z.enum(supportedChains).openapi({ example: 'EOS' }),
-    block_number: z_blocknum.openapi({ example: 1337 }),
-    timestamp: z.union([
-        z_timestamp.openapi({ example: Date.now().toString() }),
-        z_timestamp.array().openapi({ example: [Date.now().toString(), toTimestampDBFormat(new Date(0))] }),
-    ])
-}).openapi('BlocktimeQueryResponse');
+export const BlocktimeQueryResponseSchema = z.intersection(
+    z.intersection(
+        BlockchainSchema,
+        BlocknumSchema
+    ), TimestampSchema
+)
+.describe('Represents a block number <> timestamp conversion output for `/{chain}/timestamp` and `/{chain}/blocknum` endpoints.')
+.openapi('BlocktimeQueryResponse');
 
-export const BlocktimeQueryResponsesSchema = BlocktimeQueryResponseSchema.array().openapi('BlocktimeQueryResponses');
+export const BlocktimeQueryResponsesSchema = BlocktimeQueryResponseSchema.array()
+.describe('A convenience schema for zero or more block number / timestamps output when using an array as query parameter.')
+.openapi('BlocktimeQueryResponses');
 
-// Represents a single block number output for `/current` and `/final` endpoints
-export const SingleBlocknumQueryResponseSchema = z.object({
-    chain: z.enum(supportedChains).openapi({ example: 'EOS' }),
-    block_number: z_blocknum.optional().openapi({ example: 1337 }),
-}).openapi('SingleBlocknumQuery');
+export const SingleBlocknumQueryResponseSchema = z.intersection(
+    BlockchainSchema,
+    BlocknumSchema,
+)
+.describe('Represents a single block number output for `/current` and `/final` endpoints.')
+.openapi('SingleBlocknumQueryResponse');
 
-// Represents the supported chains output for `/chains`
 export const SupportedChainsQueryResponseSchema = z.object({
-    supportedChains: z.enum(supportedChains).array().openapi({ example: supportedChains })
-}).openapi('SupportedChainsQuery');
+    supportedChains: z.enum(supportedChains).array()
+})
+.describe('Represents the supported chains output for `/chains`.')
+.openapi('SupportedChainsQueryResponse');
 
 // Type exports for ease of use
 export type BlockchainSchema = z.infer<typeof BlockchainSchema>;

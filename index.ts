@@ -163,10 +163,10 @@ export function generateApp() {
     return app;
 }
 
-const app = Bun.serve({
+const server = Bun.serve({
     port: config.port,
     hostname: config.hostname,
     fetch: generateApp().fetch
 });
 
-http_logger.info(`Starting ${pkg.name} v${pkg.version} on ${app.hostname}:${app.port}`);
+http_logger.info(`Starting ${pkg.name} v${pkg.version} on ${server.hostname}:${server.port}`);

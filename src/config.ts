@@ -3,6 +3,7 @@ import { z } from '@hono/zod-openapi';
 import { Option, program } from "commander";
 
 import pkg from "../package.json";
+import { createClient } from "./clickhouse/createClient";
 
 export const DEFAULT_PORT = "8080";
 export const DEFAULT_HOSTNAME = "localhost";
@@ -12,6 +13,7 @@ export const DEFAULT_DB_USERNAME = "default";
 export const DEFAULT_DB_PASSWORD = "";
 export const DEFAULT_MAX_ELEMENTS_QUERIES = 10;
 export const DEFAULT_VERBOSE = false;
+export const APP_NAME = pkg.name;
 
 // parse command line options
 const opts = program
@@ -44,3 +46,5 @@ export const config = z.object({
     ),
     verbose: z.coerce.boolean(),
 }).parse(opts);
+
+export const client = createClient();

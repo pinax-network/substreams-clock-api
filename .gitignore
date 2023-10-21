@@ -134,7 +134,6 @@ dist
 *.sublime*
 
 # Local clickhouse DB
-clickhouse/
 cursor.lock
 
 # CLI

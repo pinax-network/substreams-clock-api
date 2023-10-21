@@ -15,9 +15,7 @@ export const healthCheckRoute = createRoute({
     method: 'get',
     path: '/health',
     responses: {
-        200: {
-            description: 'Health check service.',
-        },
+        200: { description: 'OK' },
     },
 });
 

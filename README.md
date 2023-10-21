@@ -50,9 +50,8 @@ $ chmod +x ./substreams-clock-api
 ## `.env` Environment variables
 
 ```env
-# Optional
-HTTP_PORT=8080
-HTTP_HOSTNAME=localhost
+PORT=8080
+HOSTNAME=localhost
 DB_HOST=http://localhost:8123
 DB_TABLE=block
 DB_USERNAME=default

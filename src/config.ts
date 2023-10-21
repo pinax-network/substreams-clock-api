@@ -11,7 +11,7 @@ export const DEFAULT_DB_HOST = "http://localhost:8123";
 export const DEFAULT_DB_TABLE = "block";
 export const DEFAULT_DB_USERNAME = "default";
 export const DEFAULT_DB_PASSWORD = "";
-export const DEFAULT_MAX_ELEMENTS_QUERIES = 10;
+export const DEFAULT_MAX_ELEMENTS_QUERIES = 500;
 export const DEFAULT_VERBOSE = false;
 export const APP_NAME = pkg.name;
 

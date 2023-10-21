@@ -1,7 +1,8 @@
 import { z } from '@hono/zod-openapi';
 import { HTTPException } from 'hono/http-exception';
+import { type DataFormat } from "@clickhouse/client-web";
 
-import { config } from './config';
+import { client, config } from './config';
 import { api_rows_received } from './prometheus';
 import { BlockchainSchema, BlocktimeQueryResponseSchema, BlocktimeQueryResponsesSchema, SingleBlocknumQueryResponseSchema } from './schemas';
 
@@ -12,12 +13,8 @@ type JSONObjectEachRow = {
     }
 };
 
-async function makeQuery(query: string, format: string = 'JSONObjectEachRow'): Promise<any> {
-    const response = await fetch(`${config.dbHost}/?default_format=${format}`, {
-        method: "POST",
-        body: query,
-        headers: { "Content-Type": "text/plain" },
-    }).catch((error) => {
+async function makeQuery(query: string, format: DataFormat = 'JSONObjectEachRow'): Promise<any> {
+    const response = await client.query({ query, format }).catch((error) => {
         throw new HTTPException(503, {
             message: `(${error.path}) ${error} -- Check /health for API status.`
         });
@@ -84,7 +81,7 @@ export async function finalBlocknumQuery(chain: string) {
 
     return SingleBlocknumQueryResponseSchema.parse({
         chain,
-        block_number: Object.values(json as JSONObjectEachRow)[0].final,
+        block_number: Object.values(json as JSONObjectEachRow)[0]?.final,
     });
 }
 
@@ -92,7 +89,7 @@ export async function supportedChainsQuery() {
     const query = `SELECT DISTINCT chain FROM ${config.table}`;
 
     // Required format for returning a const value in order to make z.enum() work in the schema definitions
-    const json = await makeQuery(query, 'JSONColumns');
+    const json = await makeQuery(query, 'JSONColumns' as unknown as undefined);
 
     return json.chain
 }

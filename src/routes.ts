@@ -59,10 +59,10 @@ export const blocknumQueryRoute = createRoute({
                 'application/json': {
                     schema: schemas.BlocktimeQueryResponsesSchema,
                     examples: {
-                        single: { summary: 'Single', value: [{'chain': 'mainnet', 'block_number': 18394302, 'timestamp': '2023-10-20T21:45:11'}] },
+                        single: { summary: 'Single', value: [{ chain: 'mainnet', block_number: 18394302, timestamp: '2023-10-20T21:45:11' }] },
                         multiple: { summary: 'Multiple', value: [
-                            {'chain': 'mainnet', 'block_number': 18394302, 'timestamp': '2023-10-20T21:45:11'},
-                            {'chain': 'mainnet', 'block_number': 18395243, 'timestamp': '2023-10-21T23:22:53'}
+                            { chain: 'mainnet', block_number: 18394302, timestamp: '2023-10-20T21:45:11' },
+                            { chain: 'mainnet', block_number: 18395243, timestamp: '2023-10-21T23:22:53' }
                         ]},
                     }
                 },
@@ -87,8 +87,8 @@ export const timestampQueryRoute = createRoute({
                     examples: {
                         single: { summary: 'Single', value: [{'chain': 'mainnet', 'block_number': 18394302, 'timestamp': '2023-10-20T21:45:11'}] },
                         multiple: { summary: 'Multiple', value: [
-                            {'chain': 'mainnet', 'block_number': 18394302, 'timestamp': '2023-10-20T21:45:11'},
-                            {'chain': 'mainnet', 'block_number': 18395243, 'timestamp': '2023-10-21T23:22:53'}
+                            { chain: 'mainnet', block_number: 18394302, timestamp: '2023-10-20T21:45:11' },
+                            { chain: 'mainnet', block_number: 18395243, timestamp: '2023-10-21T23:22:53' }
                         ]},
                     }
                 },
@@ -127,9 +127,13 @@ export const finalBlocknumQueryRoute = createRoute({
             content: {
                 'application/json': {
                     schema: schemas.SingleBlocknumQueryResponseSchema,
+                    examples: {
+                        valid: { summary: 'Valid', value: { chain: 'mainnet', block_number: 18394302 } },
+                        missing: { summary: 'Missing', value: { chain: 'mainnet' } }
+                    }
                 },
             },
-            description: 'Retrieve the latest final block number on the blockchain.',
+            description: 'Retrieve the latest final block number on the blockchain. If no final block is found, no block number will be returned.',
         },
     },
 });

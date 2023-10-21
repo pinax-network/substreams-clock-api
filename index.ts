@@ -2,20 +2,18 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import { type Context, type TypedResponse } from 'hono';
 import { serveStatic } from 'hono/bun'
 import { HTTPException } from 'hono/http-exception';
-import { logger } from 'hono/logger';
-import { type Serve } from "bun";
 
-import * as routes from './routes';
-import * as metrics from "./prometheus";
-import { config } from "./config";
-import { http_logger } from "./logger";
-import pkg from "../package.json";
+import * as routes from './src/routes';
+import * as metrics from "./src/prometheus";
+import { config } from "./src/config";
+import { http_logger } from "./src/logger";
+import pkg from "./package.json";
 import {
     type BlockchainSchema, type BlocknumSchema, type TimestampSchema,
     type BlocktimeQueryResponsesSchema, type SingleBlocknumQueryResponseSchema, type SupportedChainsQueryResponseSchema
-} from './schemas';
-import { banner } from "./banner";
-import { supportedChainsQuery, timestampQuery, blocknumQuery, currentBlocknumQuery, finalBlocknumQuery } from "./queries";
+} from './src/schemas';
+import { banner } from "./src/banner";
+import { supportedChainsQuery, timestampQuery, blocknumQuery, currentBlocknumQuery, finalBlocknumQuery } from "./src/queries";
 
 function JSONAPIResponseWrapper<T>(c: Context, res: T) {
     metrics.api_successful_queries.labels({ path: c.req.url }).inc();
@@ -54,7 +52,7 @@ export function generateApp() {
 
         metrics.api_total_queries.inc();
         await next();
-        
+
         const delta = Date.now() - start;
         const elapsed_time = delta < 1000 ? delta + 'ms' : Math.round(delta / 1000) + 's';
 
@@ -165,8 +163,10 @@ export function generateApp() {
     return app;
 }
 
-export default {
+const app = Bun.serve({
     port: config.port,
     hostname: config.hostname,
     fetch: generateApp().fetch
-} as Serve;
+});
+
+http_logger.info(`Starting ${pkg.name} v${pkg.version} on ${app.hostname}:${app.port}`);

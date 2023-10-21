@@ -17,11 +17,11 @@
     }
   ],
   "scripts": {
-    "start": "bun src/index.ts",
-    "dev": "bun --watch src/index.ts",
+    "start": "bun index.ts",
+    "dev": "bun --watch index.ts",
     "pretest": "bunx tsc --noEmit --skipLibCheck --pretty",
     "test": "bun test --coverage",
-    "build": "bun build --compile ./src/index.ts --outfile substreams-clock-api"
+    "build": "bun build --compile ./index.ts --outfile substreams-clock-api"
   },
   "dependencies": {
     "@hono/zod-openapi": "^0.7.2",

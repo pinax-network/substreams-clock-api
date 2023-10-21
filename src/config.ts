@@ -4,8 +4,8 @@ import { Option, program } from "commander";
 
 import pkg from "../package.json";
 
-export const DEFAULT_HTTP_PORT = "8080";
-export const DEFAULT_HTTP_HOSTNAME = "localhost";
+export const DEFAULT_PORT = "8080";
+export const DEFAULT_HOSTNAME = "localhost";
 export const DEFAULT_DB_HOST = "http://localhost:8123";
 export const DEFAULT_DB_TABLE = "block";
 export const DEFAULT_DB_USERNAME = "default";
@@ -19,8 +19,8 @@ const opts = program
     .version(pkg.version)
     .description(pkg.description)
     .showHelpAfterError()
-    .addOption(new Option("-p, --port <number>", "Server listen on HTTP port").env("HTTP_PORT").default(DEFAULT_HTTP_PORT))
-    .addOption(new Option("--hostname <string>", "Server HTTP hostname").env("HTTP_HOST").default(DEFAULT_HTTP_HOSTNAME))
+    .addOption(new Option("-p, --port <number>", "Server listen on HTTP port").env("PORT").default(DEFAULT_PORT))
+    .addOption(new Option("--hostname <string>", "Server HTTP hostname").env("HOSTNAME").default(DEFAULT_HOSTNAME))
     .addOption(new Option("--db-host <string>", "Clickhouse DB HTTP hostname").env("DB_HOST").default(DEFAULT_DB_HOST))
     .addOption(new Option("--table <string>", "Clickhouse DB table name").env("DB_TABLE").default(DEFAULT_DB_TABLE))
     .addOption(new Option("--username <string>", "Clickhouse DB username").env("DB_USERNAME").default(DEFAULT_DB_USERNAME))
@@ -33,14 +33,14 @@ const opts = program
     .opts();
 
 export const config = z.object({
-    port: z.string().default(DEFAULT_HTTP_PORT),
-    hostname: z.string().default(DEFAULT_HTTP_HOSTNAME),
-    dbHost: z.string().default(DEFAULT_DB_HOST),
-    table: z.string().default(DEFAULT_DB_TABLE),
-    username: z.string().default(DEFAULT_DB_USERNAME),
-    password: z.string().default(DEFAULT_DB_PASSWORD),
-    maxElementsQueried: z.coerce.number().gte(2).default(DEFAULT_MAX_ELEMENTS_QUERIES).describe(
+    port: z.string(),
+    hostname: z.string(),
+    dbHost: z.string(),
+    table: z.string(),
+    username: z.string(),
+    password: z.string(),
+    maxElementsQueried: z.coerce.number().gte(2).describe(
         'Maximum number of query elements when using arrays as parameters'
     ),
-    verbose: z.coerce.boolean().default(DEFAULT_VERBOSE),
+    verbose: z.coerce.boolean(),
 }).parse(opts);

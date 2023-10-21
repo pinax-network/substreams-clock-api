@@ -17,9 +17,10 @@
     }
   ],
   "scripts": {
-    "dev": "bun run --watch src/index.ts",
-    "lint": "bun run tsc --noEmit --skipLibCheck --pretty",
-    "test": "bun test src/tests/*.spec.ts --coverage",
+    "start": "bun src/index.ts",
+    "dev": "bun --watch src/index.ts",
+    "pretest": "bunx tsc --noEmit --skipLibCheck --pretty",
+    "test": "bun test --coverage",
     "build": "bun build --compile ./src/index.ts --outfile substreams-clock-api"
   },
   "dependencies": {

@@ -2,9 +2,10 @@ import pkg from "../../package.json" assert { type: "json" };
 
 import { OpenApiBuilder } from "openapi3-ts/oas31";
 import { config } from "../config";
-import { getBlock, supportedChainsQuery } from "../queries";
+import { getBlock } from "../queries";
 import { registry } from "../prometheus";
 import { makeQuery } from "../clickhouse/makeQuery";
+import { supportedChainsQuery } from "./chains";
 
 const TAGS = {
   MONITORING: "Monitoring",
@@ -14,7 +15,7 @@ const TAGS = {
 } as const;
 
 const chains = await supportedChainsQuery();
-const block = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
+const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
 
 export default new OpenApiBuilder()
   .addInfo({
@@ -99,17 +100,9 @@ export default new OpenApiBuilder()
         },
       ],
       responses: {
-        200: { description: "Array of blocks", content: { "application/json": { example: block, schema: { type: "array" } } } },
+        200: { description: "Array of blocks", content: { "application/json": { example: block_example, schema: { type: "array" } } } },
         400: { description: "Bad request" },
       },
-      // [
-      //   {
-      //     "block_number": 85123,
-      //     "block_id": "5eca6f8355a512425e14629310351441c22bef6af5c0b6b7e5082b72a915296d",
-      //     "timestamp": "2015-08-14 13:26:40.000",
-      //     "chain": "eth"
-      //   }
-      // ]
     },
   })
   .addPath("/health", {

@@ -1,6 +1,12 @@
-import { supportedChainsQuery } from "../queries.js";
+import { makeQuery } from "../clickhouse/makeQuery.js";
 import { logger } from "../logger.js";
 import * as prometheus from "../prometheus.js";
+import { getChain } from "../queries.js";
+
+export async function supportedChainsQuery() {
+  const response = await makeQuery<{chain: string}>(getChain());
+  return response.data.map((r) => r.chain);
+}
 
 export default async function (req: Request) {
   try {

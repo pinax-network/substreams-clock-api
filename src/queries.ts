@@ -1,5 +1,4 @@
 import { config } from './config';
-import { makeQuery } from './clickhouse/makeQuery';
 
 export interface Block {
     block_number: number;
@@ -18,12 +17,25 @@ export function parseLimit(limit?: string|null|number) {
     return value;
 }
 
+export function parseTimestamp(timestamp?: string|null|number) {
+    if (timestamp) {
+        if (typeof timestamp === "string") {
+            if (/^[0-9]+$/.test(timestamp)) return parseInt(timestamp);
+            // append "Z" to timestamp if it doesn't have it
+            if (!timestamp.endsWith("Z")) timestamp += "Z";
+            return Number(new Date(timestamp));
+        }
+        if (typeof timestamp === "number") return timestamp;
+    }
+    return undefined;
+}
+
 export function getBlock(searchParams: URLSearchParams) {
     // URL Params
     const chain = searchParams.get("chain");
     const block_number = searchParams.get("block_number");
     const block_id = searchParams.get("block_id");
-    const timestamp = searchParams.get("timestamp");
+    const timestamp = parseTimestamp(searchParams.get("timestamp"));
     const limit = parseLimit(searchParams.get("limit"));
     // TO-DO: Timestamp parsing ("2021-10-19" => UTC Milliseconds)
     // TO-DO: lessOrEquals, greaterOrEquals, less & greater block number & timestamp
@@ -42,7 +54,6 @@ export function getBlock(searchParams: URLSearchParams) {
     return query;
 }
 
-export async function supportedChainsQuery() {
-    const response = await makeQuery<{chain: string}>(`SELECT DISTINCT chain FROM ${config.table}`);
-    return response.data.map((r) => r.chain);
+export function getChain() {
+    return `SELECT DISTINCT chain FROM ${config.table}`;
 }

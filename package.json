@@ -27,6 +27,8 @@
     "@clickhouse/client-web": "latest",
     "commander": "latest",
     "dotenv": "latest",
+    "openapi3-ts": "latest",
+    "prom-client": "latest",
     "tslog": "latest",
     "zod": "latest"
   },

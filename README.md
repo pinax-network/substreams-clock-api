@@ -20,10 +20,8 @@ Expects **UTC** datetime or UNIX-like timestamp for matching the data in the Cli
 
 ## Requirements
 
-- [Clickhouse](clickhouse.com/)
-
-Additionnaly to pull data directly from a substream:
-- [Substreams Sink Clickhouse](https://github.com/pinax-network/substreams-sink-clickhouse/)
+- [ClickHouse](clickhouse.com/)
+- [Substreams Sink ClickHouse](https://github.com/pinax-network/substreams-sink-clickhouse/)
 
 ## Quickstart
 
@@ -47,7 +45,6 @@ $ chmod +x ./substreams-clock-api
 # API Server
 PORT=8080
 HOSTNAME=localhost
-MAX_LIMIT=500
 
 # Clickhouse Database
 HOST=http://127.0.0.1:8123
@@ -55,6 +52,7 @@ DATABASE=default
 USERNAME=default
 PASSWORD=
 TABLE=block
+MAX_LIMIT=500
 
 # Logging
 VERBOSE=true

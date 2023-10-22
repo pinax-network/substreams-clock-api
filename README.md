@@ -8,21 +8,15 @@
 
 | Pathname                                  | Description           |
 |-------------------------------------------|-----------------------|
-| GET `/`                                   | Banner
-| GET `/chains`                             | Returns all available `chains`
+| GET `/chains`                             | Available `chains`
+| GET `/block`                              | Get block by `block_number`, `block_id` or `timestamp`
 | GET `/health`                             | Health check
 | GET `/metrics`                            | Prometheus metrics
 | GET `/openapi`                            | [OpenAPI v3 JSON](https://spec.openapis.org/oas/v3.0.0)
-| GET `/swagger`                            | [Swagger UI](https://swagger.io/resources/open-api/)
-| GET `/{chain}/current`                   | Latest block number on the chain
-| GET `/{chain}/final`                      | Latest finalized block number on the chain
-| GET `/{chain}/timestamp?block_number=`    | Timestamp query from a block number or array (comma-separated)
-| GET `/{chain}/blocknum?timestamp=`        | Block number query from a timestamp or array (comma-separated)
 
 **Important note regarding `timestamp` query parameter**
 
 Expects **UTC** datetime or UNIX-like timestamp for matching the data in the Clickhouse DB. Passing `timestamp` data with additional timezone information (such as `...T...Z` or `±hh`) will likely fail the query to match (unless it corresponds to UTC0).
-
 
 ## Requirements
 
@@ -50,35 +44,42 @@ $ chmod +x ./substreams-clock-api
 ## `.env` Environment variables
 
 ```env
+# API Server
 PORT=8080
-HOSTNAME=localhost
-DB_HOST=http://localhost:8123
-DB_TABLE=block
-DB_USERNAME=default
-DB_PASSWORD=
+HOSTNAME=0.0.0.0
 MAX_ELEMENTS_QUERIED=10
-VERBOSE=false
+
+# Clickhouse Database
+HOST=http://127.0.0.1:8123
+DATABASE=default
+USERNAME=default
+PASSWORD=
+TABLE=block
+
+# Logging
+VERBOSE=true
 ```
 
 ## Help
 
 ```console
-$ ./substreams-clock-api -h                                                                                     
+$ ./substreams-clock-api -h
 Usage: substreams-clock-api [options]
 
 Timestamps <> Block numbers conversion for your favorite chains
 
 Options:
   -V, --version                    output the version number
-  -p, --port <number>              Server listen on HTTP port (default: "8080", env: HTTP_PORT)
-  --hostname <string>              Server HTTP hostname (default: "localhost", env: HTTP_HOST)
-  --db-host <string>               Clickhouse DB HTTP hostname (default: "http://localhost:8123", env: DB_HOST)
-  --table <string>                 Clickhouse DB table name (default: "block", env: DB_TABLE)
-  --username <string>              Clickhouse DB username (default: "default", env: DB_USERNAME)
-  --password <string>              Clickhouse DB password (default: "", env: DB_PASSWORD)
-  --max-elements-queried <string>  Maximum number of elements allowed when using arrays in query parameters (warning: setting a very high number can allow for
-                                   intensive DB workload) (default: 10, env: MAX_ELEMENTS_QUERIED)
-  --verbose                        Enable verbose logging (default: false, env: VERBOSE)
+  -p, --port <number>              HTTP port on which to attach the API (default: "8080", env: PORT)
+  -v, --verbose <boolean>          Enable verbose logging (choices: "true", "false", default: false, env: VERBOSE)
+  --hostname <string>              Server listen on HTTP hostname (default: "localhost", env: HOSTNAME)
+  --host <string>                  Database HTTP hostname (default: "http://localhost:8123", env: HOST)
+  --username <string>              Database user (default: "default", env: USERNAME)
+  --password <string>              Password associated with the specified username (default: "", env: PASSWORD)
+  --database <string>              The database to use inside ClickHouse (default: "default", env: DATABASE)
+  --table <string>                 Clickhouse table name (default: "block", env: TABLE)
+  --max-elements-queried <string>  Maximum number of elements allowed when using arrays in query parameters (warning: setting a
+                                   very high number can allow for intensive DB workload) (default: 500, env: MAX_ELEMENTS_QUERIED)
   -h, --help                       display help for command
 ```
 

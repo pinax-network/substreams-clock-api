@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { z } from '@hono/zod-openapi';
+import { z } from 'zod';
 import { Option, program } from "commander";
 
 import pkg from "../package.json";

@@ -1,7 +1,6 @@
 import pkg from "../../package.json" assert { type: "json" };
 
-import { OpenApiBuilder, SchemaObject } from "openapi3-ts/oas31";
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { OpenApiBuilder } from "openapi3-ts/oas31";
 import { config } from "../config";
 import { supportedChainsQuery } from "../queries";
 

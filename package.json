@@ -25,12 +25,10 @@
   },
   "dependencies": {
     "@clickhouse/client-web": "latest",
-    "@hono/zod-openapi": "latest",
     "commander": "latest",
     "dotenv": "latest",
     "tslog": "latest",
-    "zod": "latest",
-    "zod-to-json-schema": "latest"
+    "zod": "latest"
   },
   "devDependencies": {
     "bun-types": "latest",

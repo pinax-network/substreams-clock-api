@@ -12,7 +12,7 @@ export const DEFAULT_DATABASE = "default";
 export const DEFAULT_TABLE = "block";
 export const DEFAULT_USERNAME = "default";
 export const DEFAULT_PASSWORD = "";
-export const DEFAULT_MAX_ELEMENTS_QUERIES = 500;
+export const DEFAULT_MAX_LIMIT = 500;
 export const DEFAULT_VERBOSE = false;
 export const APP_NAME = pkg.name;
 
@@ -30,10 +30,7 @@ const opts = program
     .addOption(new Option("--password <string>", "Password associated with the specified username").env("PASSWORD").default(DEFAULT_PASSWORD))
     .addOption(new Option("--database <string>", "The database to use inside ClickHouse").env("DATABASE").default(DEFAULT_DATABASE))
     .addOption(new Option("--table <string>", "Clickhouse table name").env("TABLE").default(DEFAULT_TABLE))
-
-    .addOption(new Option("--max-elements-queried <string>",
-        "Maximum number of elements allowed when using arrays in query parameters (warning: setting a very high number can allow for intensive DB workload)"
-        ).env("MAX_ELEMENTS_QUERIED").default(DEFAULT_MAX_ELEMENTS_QUERIES))
+    .addOption(new Option("--max-limit <number>", "Maximum LIMIT queries").env("MAX_LIMIT").default(DEFAULT_MAX_LIMIT))
     .parse()
     .opts();
 
@@ -45,9 +42,7 @@ export const config = z.object({
     database: z.string(),
     username: z.string(),
     password: z.string(),
-    maxElementsQueried: z.coerce.number().gte(2).describe(
-        'Maximum number of query elements when using arrays as parameters'
-    ),
+    maxLimit: z.coerce.number(),
     verbose: z.coerce.boolean(),
 }).parse(opts);
 

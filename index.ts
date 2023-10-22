@@ -1,6 +1,7 @@
 import { config } from "./src/config";
 import { logger } from "./src/logger";
 import GET from "./src/fetch/GET";
+import * as prometheus from "./src/prometheus.js";
 
 if (config.verbose) logger.enable();
 
@@ -9,6 +10,7 @@ const app = Bun.serve({
     port: config.port,
     fetch(req: Request) {
         if (req.method === "GET") return GET(req);
+        prometheus.request_error.inc({pathname: new URL(req.url).pathname, status: 400});
         return new Response("Invalid request", { status: 400 });
     }
 });

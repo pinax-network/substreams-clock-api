@@ -31,12 +31,10 @@ export async function getSingleMetric(name: string) {
 }
 
 // REST API metrics
-export const api_server_errors = registerCounter('server_errors', 'Total of server errors', ['path']);
-export const api_validation_errors = registerCounter('validation_errors', 'Total of query parameters validation errors', ['path']);
-export const api_notfound_errors = registerCounter('notfound_errors', 'Total of not found errors', ['path']);
-export const api_successful_queries = registerCounter('successful_queries', 'Total of successful queries', ['path']);
-export const api_total_queries = registerCounter('total_queries', 'Total of queries');
-export const api_rows_received = registerCounter('rows_received', 'Total of rows received from Clickhouse DB');
+export const request_error = registerCounter('request_error', 'Total Requests errors', ['pathname', 'status']);
+export const request = registerCounter('request', 'Total Requests', ['pathname']);
+export const query = registerCounter('query', 'Clickhouse DB queries made');
+export const bytes_read = registerCounter('bytes_read', 'Clickhouse DB Statistics bytes read');
+export const rows_read = registerCounter('rows_read', 'Clickhouse DB Statistics rows read');
+export const elapsed = registerCounter('elapsed', 'Clickhouse DB Statistics query elapsed time');
 
-// Gauge example
-// export const connection_active = registerGauge('connection_active', 'Total WebSocket active connections');

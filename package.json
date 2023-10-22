@@ -1,6 +1,6 @@
 {
   "name": "substreams-clock-api",
-  "description": "Timestamps <> Block numbers conversion for your favorite chains",
+  "description": "Block & Timestamps API",
   "version": "1.2.1",
   "homepage": "https://github.com/pinax-network/substreams-clock-api",
   "license": "MIT",

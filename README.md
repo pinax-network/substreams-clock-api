@@ -2,7 +2,7 @@
 
 [![.github/workflows/bun-test.yml](https://github.com/pinax-network/substreams-clock-api/actions/workflows/bun-test.yml/badge.svg)](https://github.com/pinax-network/substreams-clock-api/actions/workflows/bun-test.yml)
 
-> Convert Timestamps <> Block numbers and query latest blocks height for your favorite chains !
+> Block & Timestamps API
 
 ## REST API
 
@@ -46,8 +46,8 @@ $ chmod +x ./substreams-clock-api
 ```env
 # API Server
 PORT=8080
-HOSTNAME=0.0.0.0
-MAX_ELEMENTS_QUERIED=10
+HOSTNAME=localhost
+MAX_LIMIT=500
 
 # Clickhouse Database
 HOST=http://127.0.0.1:8123
@@ -66,21 +66,20 @@ VERBOSE=true
 $ ./substreams-clock-api -h
 Usage: substreams-clock-api [options]
 
-Timestamps <> Block numbers conversion for your favorite chains
+Block & Timestamps API
 
 Options:
-  -V, --version                    output the version number
-  -p, --port <number>              HTTP port on which to attach the API (default: "8080", env: PORT)
-  -v, --verbose <boolean>          Enable verbose logging (choices: "true", "false", default: false, env: VERBOSE)
-  --hostname <string>              Server listen on HTTP hostname (default: "localhost", env: HOSTNAME)
-  --host <string>                  Database HTTP hostname (default: "http://localhost:8123", env: HOST)
-  --username <string>              Database user (default: "default", env: USERNAME)
-  --password <string>              Password associated with the specified username (default: "", env: PASSWORD)
-  --database <string>              The database to use inside ClickHouse (default: "default", env: DATABASE)
-  --table <string>                 Clickhouse table name (default: "block", env: TABLE)
-  --max-elements-queried <string>  Maximum number of elements allowed when using arrays in query parameters (warning: setting a
-                                   very high number can allow for intensive DB workload) (default: 500, env: MAX_ELEMENTS_QUERIED)
-  -h, --help                       display help for command
+  -V, --version            output the version number
+  -p, --port <number>      HTTP port on which to attach the API (default: "8080", env: PORT)
+  -v, --verbose <boolean>  Enable verbose logging (choices: "true", "false", default: false, env: VERBOSE)
+  --hostname <string>      Server listen on HTTP hostname (default: "localhost", env: HOSTNAME)
+  --host <string>          Database HTTP hostname (default: "http://localhost:8123", env: HOST)
+  --username <string>      Database user (default: "default", env: USERNAME)
+  --password <string>      Password associated with the specified username (default: "", env: PASSWORD)
+  --database <string>      The database to use inside ClickHouse (default: "default", env: DATABASE)
+  --table <string>         Clickhouse table name (default: "block", env: TABLE)
+  --max-limit <number>     Maximum LIMIT queries (default: 500, env: MAX_LIMIT)
+  -h, --help               display help for command
 ```
 
 ## Docker environment

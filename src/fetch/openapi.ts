@@ -69,6 +69,8 @@ export default new OpenApiBuilder()
           name: 'timestamp',
           in: 'query',
           description: 'Timestamp in UTC milliseconds (ex: 1697908576275)',
+          required: false,
+          schema: { type: "number" },
         },
         {
           name: "final_block",

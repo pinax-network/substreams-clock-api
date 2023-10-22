@@ -2,7 +2,9 @@ import pkg from "../../package.json" assert { type: "json" };
 
 import { OpenApiBuilder } from "openapi3-ts/oas31";
 import { config } from "../config";
-import { supportedChainsQuery } from "../queries";
+import { getBlock, supportedChainsQuery } from "../queries";
+import { registry } from "../prometheus";
+import { makeQuery } from "../clickhouse/makeQuery";
 
 const TAGS = {
   MONITORING: "Monitoring",
@@ -12,6 +14,7 @@ const TAGS = {
 } as const;
 
 const chains = await supportedChainsQuery();
+const block = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
 
 export default new OpenApiBuilder()
   .addInfo({
@@ -83,9 +86,9 @@ export default new OpenApiBuilder()
         {
           name: "limit",
           in: "query",
-          description: "Maximum number of elements to return",
+          description: "Used to specify the number of records to return.",
           required: false,
-          schema: { default: 1, type: "number", maximum: config.maxElementsQueried, minimum: 1 },
+          schema: { default: 1, type: "number", maximum: config.maxLimit, minimum: 1 },
         },
         {
           name: "sort_by",
@@ -96,7 +99,7 @@ export default new OpenApiBuilder()
         },
       ],
       responses: {
-        200: { description: "Array of blocks", content: { "application/json": { schema: { type: "array" } } } },
+        200: { description: "Array of blocks", content: { "application/json": { example: block, schema: { type: "array" } } } },
         400: { description: "Bad request" },
       },
       // [
@@ -113,21 +116,21 @@ export default new OpenApiBuilder()
     get: {
       tags: [TAGS.HEALTH],
       summary: "Performs health checks and checks if the database is accessible",
-      responses: {200: { description: "OK" } },
+      responses: {200: { description: "OK", content: { "text/plain": {example: "OK"}} } },
     },
   })
   .addPath("/metrics", {
     get: {
       tags: [TAGS.MONITORING],
       summary: "Prometheus metrics",
-      responses: {200: { description: "Prometheus metrics"}},
+      responses: {200: { description: "Prometheus metrics", content: { "text/plain": { example: await registry.metrics(), schema: { type: "string" } } }}},
     },
   })
   .addPath("/openapi", {
     get: {
       tags: [TAGS.DOCS],
       summary: "OpenAPI specification",
-      responses: {200: {description: "OpenAPI JSON Specification" }},
+      responses: {200: {description: "OpenAPI JSON Specification", content: { "application/json": { schema: { type: "string" } } } }},
     },
   })
   .getSpecAsJson();

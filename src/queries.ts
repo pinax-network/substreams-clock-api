@@ -13,18 +13,29 @@ export function parseLimit(limit?: string|null|number) {
         if (typeof limit === "string") value = parseInt(limit);
         if (typeof limit === "number") value = limit;
     }
-    // limit to maxElementsQueried
-    if ( value > config.maxElementsQueried ) value = config.maxElementsQueried;
+    // limit must be between 1 and maxLimit
+    if ( value > config.maxLimit ) value = config.maxLimit;
     return value;
 }
 
-export function getBlock(options: {block_id?: string|null, block_number?: string|null, timestamp?: string|null, chain?: string|null, limit?: string|null}) {
-    const limit = parseLimit(options.limit);
+export function getBlock(searchParams: URLSearchParams) {
+    // URL Params
+    const chain = searchParams.get("chain");
+    const block_number = searchParams.get("block_number");
+    const block_id = searchParams.get("block_id");
+    const timestamp = searchParams.get("timestamp");
+    const limit = parseLimit(searchParams.get("limit"));
+    // TO-DO: Timestamp parsing ("2021-10-19" => UTC Milliseconds)
+    // TO-DO: lessOrEquals, greaterOrEquals, less & greater block number & timestamp
+    // TO-DO: Modulo block number (ex: search by every 1M blocks)
+
+    // SQL Query
     let query = `SELECT * FROM ${config.table}`;
     const where = [];
-    if ( options.chain ) where.push(`chain == '${options.chain}'`);
-    if ( options.block_id ) where.push(`block_id == '${options.block_id}'`);
-    if ( options.block_number ) where.push(`block_number == '${options.block_number}'`);
+    if ( chain ) where.push(`chain == '${chain}'`);
+    if ( block_id ) where.push(`block_id == '${block_id}'`);
+    if ( block_number ) where.push(`block_number == '${block_number}'`);
+    if ( timestamp ) where.push(`timestamp == '${timestamp}'`);
     if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
     query += ' ORDER BY block_number DESC'
     query += ` LIMIT ${limit}`

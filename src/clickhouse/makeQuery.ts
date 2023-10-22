@@ -1,4 +1,6 @@
 import { client } from "../config";
+import { logger } from "../logger";
+import * as prometheus from "../prometheus";
 
 export interface Meta {
     name: string,
@@ -17,5 +19,11 @@ export interface Query<T> {
 
 export async function makeQuery<T = unknown>(query: string) {
     const response = await client.query({ query })
-    return response.json() as Promise<Query<T>>;
+    const data: Query<T> = await response.json();
+    prometheus.query.inc();
+    prometheus.bytes_read.inc(data.statistics.bytes_read);
+    prometheus.rows_read.inc(data.statistics.rows_read);
+    prometheus.elapsed.inc(data.statistics.elapsed);
+    logger.info({ query, statistics: data.statistics });
+    return data;
 }

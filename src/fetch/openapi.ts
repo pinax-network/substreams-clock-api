@@ -1,6 +1,6 @@
 import pkg from "../../package.json" assert { type: "json" };
 
-import { OpenApiBuilder } from "openapi3-ts/oas31";
+import { OpenApiBuilder, SchemaObject, ExampleObject } from "openapi3-ts/oas31";
 import { config } from "../config";
 import { getBlock } from "../queries";
 import { registry } from "../prometheus";
@@ -16,6 +16,18 @@ const TAGS = {
 
 const chains = await supportedChainsQuery();
 const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
+
+const timestampSchema: SchemaObject = { anyOf: [
+    {type: "number" },
+    {type: "string", format: "date"},
+    {type: "string", format: "date-time"}
+  ]
+};
+const timestampExamples: ExampleObject = {
+  unix: { summary: "Unix Timestamp (milliseconds)", value: Number(new Date('2023-10-18T00:00:00Z')) },
+  date: { summary: 'Full-date notation', value: '2023-10-18' },
+  datetime: { summary: 'Date-time notation', value: '2023-10-18T00:00:00Z' },
+}
 
 export default new OpenApiBuilder()
   .addInfo({
@@ -72,9 +84,10 @@ export default new OpenApiBuilder()
         {
           name: 'timestamp',
           in: 'query',
-          description: 'Timestamp in UTC milliseconds (ex: 1697908576275)',
+          description: 'Filter by exact timestamp',
           required: false,
-          schema: { type: "number" },
+          schema: timestampSchema,
+          examples: timestampExamples,
         },
         {
           name: "final_block",

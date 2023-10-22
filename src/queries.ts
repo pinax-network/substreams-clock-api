@@ -20,12 +20,17 @@ export function parseLimit(limit?: string|null|number) {
 export function parseTimestamp(timestamp?: string|null|number) {
     if (timestamp) {
         if (typeof timestamp === "string") {
-            if (/^[0-9]+$/.test(timestamp)) return parseInt(timestamp);
+            if (/^[0-9]+$/.test(timestamp)) {
+                return parseTimestamp(parseInt(timestamp));
+            }
             // append "Z" to timestamp if it doesn't have it
             if (!timestamp.endsWith("Z")) timestamp += "Z";
             return Number(new Date(timestamp));
         }
-        if (typeof timestamp === "number") return timestamp;
+        if (typeof timestamp === "number") {
+            if ( timestamp.toString().length === 10 ) return timestamp * 1000; // convert seconds to milliseconds
+            return timestamp;
+        }
     }
     return undefined;
 }

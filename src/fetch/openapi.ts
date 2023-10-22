@@ -41,7 +41,8 @@ export default new OpenApiBuilder()
   .addPath("/block", {
     get: {
       tags: [TAGS.USAGE],
-      summary: "Get block by `block_number`, `block_id` or `timestamp`",
+      summary: "Get block",
+      description: "Get block by `block_number`, `block_id` or `timestamp`",
       parameters: [
         {
           name: "chain",

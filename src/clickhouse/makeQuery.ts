@@ -1,6 +1,6 @@
-import { client } from "../config";
 import { logger } from "../logger";
 import * as prometheus from "../prometheus";
+import client from "./createClient";
 
 export interface Meta {
     name: string,

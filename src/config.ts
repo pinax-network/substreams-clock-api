@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { Option, program } from "commander";
 
 import pkg from "../package.json";
-import { createClient } from "./clickhouse/createClient";
 
 export const DEFAULT_PORT = "8080";
 export const DEFAULT_HOSTNAME = "localhost";
@@ -45,5 +44,3 @@ export const config = z.object({
     maxLimit: z.coerce.number(),
     verbose: z.coerce.boolean(),
 }).parse(opts);
-
-export const client = createClient();

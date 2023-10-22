@@ -1,38 +1,11 @@
 import { config } from './config';
+import { parseLimit, parseTimestamp } from './utils';
 
 export interface Block {
     block_number: number;
     block_id: string;
     timestamp: string;
     chain: string;
-}
-export function parseLimit(limit?: string|null|number) {
-    let value = 1; // default 1
-    if (limit) {
-        if (typeof limit === "string") value = parseInt(limit);
-        if (typeof limit === "number") value = limit;
-    }
-    // limit must be between 1 and maxLimit
-    if ( value > config.maxLimit ) value = config.maxLimit;
-    return value;
-}
-
-export function parseTimestamp(timestamp?: string|null|number) {
-    if (timestamp) {
-        if (typeof timestamp === "string") {
-            if (/^[0-9]+$/.test(timestamp)) {
-                return parseTimestamp(parseInt(timestamp));
-            }
-            // append "Z" to timestamp if it doesn't have it
-            if (!timestamp.endsWith("Z")) timestamp += "Z";
-            return Number(new Date(timestamp));
-        }
-        if (typeof timestamp === "number") {
-            if ( timestamp.toString().length === 10 ) return timestamp * 1000; // convert seconds to milliseconds
-            return timestamp;
-        }
-    }
-    return undefined;
 }
 
 export function getBlock(searchParams: URLSearchParams) {
@@ -42,7 +15,6 @@ export function getBlock(searchParams: URLSearchParams) {
     const block_id = searchParams.get("block_id");
     const timestamp = parseTimestamp(searchParams.get("timestamp"));
     const limit = parseLimit(searchParams.get("limit"));
-    // TO-DO: Timestamp parsing ("2021-10-19" => UTC Milliseconds)
     // TO-DO: lessOrEquals, greaterOrEquals, less & greater block number & timestamp
     // TO-DO: Modulo block number (ex: search by every 1M blocks)
 

@@ -1,7 +1,7 @@
 import { Logger, type ILogObj } from "tslog";
 import { name } from "../package.json" assert { type: "json" };
 
-class HTTPLogger extends Logger<ILogObj> {
+class TsLogger extends Logger<ILogObj> {
     constructor() {
         super();
         this.settings.minLevel = 5;
@@ -18,4 +18,4 @@ class HTTPLogger extends Logger<ILogObj> {
     }
 }
 
-export const http_logger = new HTTPLogger();
+export const logger = new TsLogger();

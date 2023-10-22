@@ -7,10 +7,9 @@
       name="description"
       content="SwaggerUI"
     />
-    <title>Clock API - SwaggerUI</title>
+    <title>Substreams Clock API - SwaggerUI</title>
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@latest/swagger-ui.css" />
-    <!-- From https://www.favicon.cc/?action=icon&file_id=981814 -->
-    <link href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxrP94Mar+tUIt3ElDLNyYQy7cvkIt3MBDLN2dQSvaUzGo/5syq/+UAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOXTxWj9H4/9ELt3/RC7d/0Qu3f9ELt3/RC7d/0Qu3f9AQuL/OXTwdQAAAAAAAAAAAAAAAAAAAAAAAAAAQSrbK0Mt3OxELt3/d2ff/7234//f3eX/4d/l/8K84/9/cd//RC7d/0Qu3vRDKt49AAAAAAAAAAAAAAAAJCTbB0Qt3ddELt3/opnh/+fm5f/o5+b/6Ofm/+jn5v/o5+b/6Ofm/7Gp4v9GMd3/Qy3d5zwt4REAAAAAAAAAAEMt3GdELt3/hXjg/+jn5v/o5+b/6Ofm/+jn5v/o5+b/6Ofm/+jn5v/o5+b/lovg/0Qu3f9DK92BAAAAAAAAAABELdzARS/d/9XS5P/o5+b/6Ofm/+jn5v/o5+b/6Ofm/+jn5v/o5+b/6Ofm/+De5f9MN93/RC3d2wAAAAAAAAAARC3d8V5L3v/o5+b/6Ofm/+jn5v/o5+b/6Ofm/+jn5v/o5+b/6Ofm/+jn5v/o5+b/cF/f/0Mt3f43JNsOAAD/AUQt3f1qWd7/6Ofm/+jn5v/o5+b/6Ofm/62rq/9UUlP/VFJT/5ORkf/o5+b/6Ofm/3ts3/9ELt3/OyfiGgAAAABELt3qWETd/+fm5f/o5+b/6Ofm/+jn5v+enJz/nZyc/+jn5v/o5+b/6Ofm/+jn5v9nVt7/RC7d+yQk2wcAAAAAQy3dr0Qu3f/Iw+T/6Ofm/+jn5v/o5+b/npyc/52cnP/o5+b/6Ofm/+jn5v/V0uT/RjDd/0Mu3ckAAAAAM8z/BUMs3UxELt3/bV3f/+bk5f/o5+b/6Ofm/56cnP+dnJz/6Ofm/+jn5v/n5uX/fG7f/0Qu3f9CK9xlM8z/BUvM/6lLzP9pRC3ctUQu3f99b9//4d/l/+jn5v+lo6P/pKOj/+jn5v/k4+X/i37g/0Qu3f9DLdzLS8X9bUvM/6lMzP/3Tc3//VCQucVHM8nuRC7d/1ZC3f+Wi+H/uLHj/7qz4/+bkeH/XEne/0Qu3f9FMNLtUIq70k3M//1My//3TMz/4E3M//9Ny/3/Srr4b0It3Y5ELdz4RC7d/0Qu3f9ELt3/RC7d/0Qu3ftCLd2eSbL4dEzM/v5NzP//TMv/3knK/1dMzP/7Tcz//03M//xJyv8/QCbZFEMs21xHdezvR3Ts8EEs22JCJtkbSs7/Pk3M//xNzP//TMz/+0vM/1UAAAAAS83/KUvK/2pKy/9FAAAAAAAAAAAAAAAATMz/tUzL/7YAAAAAAAAAAAAAAABKy/9FS8r/akvN/ykAAAAA9CcAAPAPAADgBwAAwAMAAMABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAABAAgAAAAAAABAIAACOcQAA/n8AAA==" rel="icon" type="image/x-icon">
+    <link href="/favicon.png" rel="icon" type="image/x-icon">
   </head>
   <body>
   <div id="swagger-ui"></div>
@@ -19,7 +18,7 @@
   <script>
     window.onload = () => {
       window.ui = SwaggerUIBundle({
-        url: 'http://localhost:8080/openapi',
+        url: '/openapi',
         dom_id: '#swagger-ui',
         presets: [
           SwaggerUIBundle.presets.apis,

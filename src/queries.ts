@@ -12,7 +12,7 @@ export function getBlock(searchParams: URLSearchParams) {
     // TO-DO: Modulo block number (ex: search by every 1M blocks)
 
     // SQL Query
-    let query = `SELECT block_id, block_number, chain, timestamp FROM ${config.table}`;
+    let query = `SELECT * FROM ${config.table}`;
     const where = [];
 
     // Clickhouse Operators
@@ -26,8 +26,8 @@ export function getBlock(searchParams: URLSearchParams) {
     for ( const [key, operator] of operators ) {
         const block_number = searchParams.get(`${key}_by_block_number`);
         const timestamp = parseTimestamp(searchParams.get(`${key}_by_timestamp`));
-        if (block_number) where.push(`block_number ${operator} '${block_number}'`);
-        if (timestamp) where.push(`timestamp ${operator} '${timestamp}'`);
+        if (block_number) where.push(`block_number ${operator} ${block_number}`);
+        if (timestamp) where.push(`toUnixTimestamp(timestamp) ${operator} ${timestamp}`);
     }
 
     // equals
@@ -36,9 +36,9 @@ export function getBlock(searchParams: URLSearchParams) {
     const block_number = searchParams.get('block_number');
     const timestamp = parseTimestamp(searchParams.get('timestamp'));
     if (chain) where.push(`chain == '${chain}'`);
-    if (block_id) where.push(`block_id == '${block_id}'`);
+    if (block_id) where.push(`block_id == '${block_id.replace("0x", "")}'`);
     if (block_number) where.push(`block_number == '${block_number}'`);
-    if (timestamp) where.push(`timestamp == '${timestamp}'`);
+    if (timestamp) where.push(`toUnixTimestamp(timestamp) == ${timestamp}`);
 
     // Join WHERE statements with AND
     if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;

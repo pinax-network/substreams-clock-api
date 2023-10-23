@@ -24,7 +24,7 @@ const timestampSchema: SchemaObject = { anyOf: [
   ]
 };
 const timestampExamples: ExampleObject = {
-  unix: { summary: `Unix Timestamp (milliseconds)` },
+  unix: { summary: `Unix Timestamp (seconds)` },
   date: { summary: `Full-date notation`, value: '2023-10-18' },
   datetime: { summary: `Date-time notation`, value: '2023-10-18T00:00:00Z'},
 }

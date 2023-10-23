@@ -19,12 +19,12 @@ export function parseTimestamp(timestamp?: string|null|number) {
             }
             // append "Z" to timestamp if it doesn't have it
             if (!timestamp.endsWith("Z")) timestamp += "Z";
-            return Number(new Date(timestamp));
+            return Math.floor(Number(new Date(timestamp)) / 1000);
         }
         if (typeof timestamp === "number") {
             const length = timestamp.toString().length;
-            if ( length === 13 ) return timestamp; // milliseconds
-            if ( length === 10 ) return timestamp * 1000; // convert seconds to milliseconds
+            if ( length === 10 ) return timestamp; // convert seconds to milliseconds
+            if ( length === 13 ) return Math.floor(timestamp / 1000); // convert milliseconds to seconds
             throw new Error("Invalid timestamp");
         }
     }

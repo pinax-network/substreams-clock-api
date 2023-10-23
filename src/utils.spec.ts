@@ -1,6 +1,13 @@
 import { expect, test } from "bun:test";
-import { parseLimit, parseTimestamp } from "./utils";
+import { parseBlockId, parseLimit, parseTimestamp } from "./utils";
 import { DEFAULT_MAX_LIMIT } from "./config";
+
+test("parseBlockId", () => {
+    expect(parseBlockId()).toBeUndefined();
+    expect(parseBlockId(null)).toBeUndefined();
+    expect(parseBlockId("00fef8cf2a2c73266f7c0b71fb5762f9a36419e51a7c05b0e82f9e3bacb859bc")).toBe("00fef8cf2a2c73266f7c0b71fb5762f9a36419e51a7c05b0e82f9e3bacb859bc");
+    expect(parseBlockId("0x00fef8cf2a2c73266f7c0b71fb5762f9a36419e51a7c05b0e82f9e3bacb859bc")).toBe("00fef8cf2a2c73266f7c0b71fb5762f9a36419e51a7c05b0e82f9e3bacb859bc");
+});
 
 test("parseLimit", () => {
     expect(parseLimit()).toBe(1);

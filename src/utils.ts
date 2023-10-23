@@ -11,6 +11,10 @@ export function parseLimit(limit?: string|null|number) {
     return value;
 }
 
+export function parseBlockId(block_id?: string|null) {
+    return block_id ? block_id.replace("0x", "") : undefined;
+}
+
 export function parseTimestamp(timestamp?: string|null|number) {
     if (timestamp !== undefined && timestamp !== null) {
         if (typeof timestamp === "string") {
@@ -23,7 +27,7 @@ export function parseTimestamp(timestamp?: string|null|number) {
         }
         if (typeof timestamp === "number") {
             const length = timestamp.toString().length;
-            if ( length === 10 ) return timestamp; // convert seconds to milliseconds
+            if ( length === 10 ) return timestamp; // seconds
             if ( length === 13 ) return Math.floor(timestamp / 1000); // convert milliseconds to seconds
             throw new Error("Invalid timestamp");
         }

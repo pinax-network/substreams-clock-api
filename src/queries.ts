@@ -1,5 +1,5 @@
 import { DEFAULT_SORT_BY, config } from './config';
-import { parseLimit, parseTimestamp } from './utils';
+import { parseBlockId, parseLimit, parseTimestamp } from './utils';
 
 export interface Block {
     block_number: number;
@@ -32,11 +32,11 @@ export function getBlock(searchParams: URLSearchParams) {
 
     // equals
     const chain = searchParams.get("chain");
-    const block_id = searchParams.get("block_id");
+    const block_id = parseBlockId(searchParams.get("block_id"));
     const block_number = searchParams.get('block_number');
     const timestamp = parseTimestamp(searchParams.get('timestamp'));
     if (chain) where.push(`chain == '${chain}'`);
-    if (block_id) where.push(`block_id == '${block_id.replace("0x", "")}'`);
+    if (block_id) where.push(`block_id == '${block_id}'`);
     if (block_number) where.push(`block_number == '${block_number}'`);
     if (timestamp) where.push(`toUnixTimestamp(timestamp) == ${timestamp}`);
 

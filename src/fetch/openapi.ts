@@ -1,6 +1,6 @@
 import pkg from "../../package.json" assert { type: "json" };
 
-import { OpenApiBuilder, SchemaObject, ExampleObject } from "openapi3-ts/oas31";
+import { OpenApiBuilder, SchemaObject, ExampleObject, ParameterObject } from "openapi3-ts/oas31";
 import { config } from "../config";
 import { getBlock } from "../queries";
 import { registry } from "../prometheus";
@@ -18,15 +18,15 @@ const chains = await supportedChainsQuery();
 const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
 
 const timestampSchema: SchemaObject = { anyOf: [
-    {type: "number" },
+    {type: "number"},
     {type: "string", format: "date"},
     {type: "string", format: "date-time"}
   ]
 };
 const timestampExamples: ExampleObject = {
-  unix: { summary: "Unix Timestamp (milliseconds)", value: Number(new Date('2023-10-18T00:00:00Z')) },
-  date: { summary: 'Full-date notation', value: '2023-10-18' },
-  datetime: { summary: 'Date-time notation', value: '2023-10-18T00:00:00Z' },
+  unix: { summary: `Unix Timestamp (milliseconds)` },
+  date: { summary: `Full-date notation`, value: '2023-10-18' },
+  datetime: { summary: `Date-time notation`, value: '2023-10-18T00:00:00Z'},
 }
 
 export default new OpenApiBuilder()
@@ -95,21 +95,39 @@ export default new OpenApiBuilder()
           in: "query",
           required: false,
           schema: { type: "boolean" },
-          example: true,
-        },
-        {
-          name: "limit",
-          in: "query",
-          description: "Used to specify the number of records to return.",
-          required: false,
-          schema: { default: 1, type: "number", maximum: config.maxLimit, minimum: 1 },
         },
         {
           name: "sort_by",
           in: "query",
           description: "Sort by `block_number`",
           required: false,
-          schema: {enum: ['ASC', 'DESC'], default: 'DESC'},
+          schema: {enum: ['ASC', 'DESC'] },
+        },
+        ...["greater_or_equals_by_timestamp", "greater_by_timestamp", "less_or_equals_by_timestamp", "less_by_timestamp"].map(name => {
+          return {
+            name,
+            in: "query",
+            description: "Filter " + name.replace(/_/g, " "),
+            required: false,
+            schema: timestampSchema,
+            examples: timestampExamples,
+          } as ParameterObject
+        }),
+        ...["greater_or_equals_by_block_number", "greater_by_block_number", "less_or_equals_by_block_number", "less_by_block_number"].map(name => {
+          return {
+            name,
+            in: "query",
+            description: "Filter " + name.replace(/_/g, " "),
+            required: false,
+            schema: { type: "number" },
+          } as ParameterObject
+        }),
+        {
+          name: "limit",
+          in: "query",
+          description: "Used to specify the number of records to return.",
+          required: false,
+          schema: { type: "number", maximum: config.maxLimit, minimum: 1 },
         },
       ],
       responses: {

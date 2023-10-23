@@ -1,4 +1,4 @@
-import { config } from './config';
+import { DEFAULT_SORT_BY, config } from './config';
 import { parseLimit, parseTimestamp } from './utils';
 
 export interface Block {
@@ -9,24 +9,44 @@ export interface Block {
 }
 
 export function getBlock(searchParams: URLSearchParams) {
-    // URL Params
-    const chain = searchParams.get("chain");
-    const block_number = searchParams.get("block_number");
-    const block_id = searchParams.get("block_id");
-    const timestamp = parseTimestamp(searchParams.get("timestamp"));
-    const limit = parseLimit(searchParams.get("limit"));
-    // TO-DO: lessOrEquals, greaterOrEquals, less & greater block number & timestamp
     // TO-DO: Modulo block number (ex: search by every 1M blocks)
 
     // SQL Query
-    let query = `SELECT * FROM ${config.table}`;
+    let query = `SELECT block_id, block_number, chain, timestamp FROM ${config.table}`;
     const where = [];
-    if ( chain ) where.push(`chain == '${chain}'`);
-    if ( block_id ) where.push(`block_id == '${block_id}'`);
-    if ( block_number ) where.push(`block_number == '${block_number}'`);
-    if ( timestamp ) where.push(`timestamp == '${timestamp}'`);
+
+    // Clickhouse Operators
+    // https://clickhouse.com/docs/en/sql-reference/operators
+    const operators = [
+        ["greater_or_equals", ">="],
+        ["greater", ">"],
+        ["less_or_equals", "<="],
+        ["less", "<"],
+    ]
+    for ( const [key, operator] of operators ) {
+        const block_number = searchParams.get(`${key}_by_block_number`);
+        const timestamp = parseTimestamp(searchParams.get(`${key}_by_timestamp`));
+        if (block_number) where.push(`block_number ${operator} '${block_number}'`);
+        if (timestamp) where.push(`timestamp ${operator} '${timestamp}'`);
+    }
+
+    // equals
+    const chain = searchParams.get("chain");
+    const block_id = searchParams.get("block_id");
+    const block_number = searchParams.get('block_number');
+    const timestamp = parseTimestamp(searchParams.get('timestamp'));
+    if (chain) where.push(`chain == '${chain}'`);
+    if (block_id) where.push(`block_id == '${block_id}'`);
+    if (block_number) where.push(`block_number == '${block_number}'`);
+    if (timestamp) where.push(`timestamp == '${timestamp}'`);
+
+    // Join WHERE statements with AND
     if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
-    query += ' ORDER BY block_number DESC'
+
+    // Sort and Limit
+    const limit = parseLimit(searchParams.get("limit"));
+    const sort_by = searchParams.get("sort_by");
+    query += ` ORDER BY block_number ${sort_by ?? DEFAULT_SORT_BY}`
     query += ` LIMIT ${limit}`
     return query;
 }

@@ -52,5 +52,5 @@ export function getBlock(searchParams: URLSearchParams) {
 }
 
 export function getChain() {
-    return `SELECT DISTINCT chain FROM ${config.table}`;
+    return `SELECT DISTINCT chain FROM module_hashes`;
 }

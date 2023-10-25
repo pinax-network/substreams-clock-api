@@ -6,6 +6,7 @@ const client = createClient({
     ...config,
     clickhouse_settings: {
         allow_experimental_object_type: 1,
+        readonly: "1",
     },
     application: APP_NAME,
 })

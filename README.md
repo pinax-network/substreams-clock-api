@@ -51,7 +51,7 @@ HOST=http://127.0.0.1:8123
 DATABASE=default
 USERNAME=default
 PASSWORD=
-TABLE=block
+TABLE=blocks
 MAX_LIMIT=500
 
 # Logging
@@ -75,7 +75,7 @@ Options:
   --username <string>      Database user (default: "default", env: USERNAME)
   --password <string>      Password associated with the specified username (default: "", env: PASSWORD)
   --database <string>      The database to use inside ClickHouse (default: "default", env: DATABASE)
-  --table <string>         Clickhouse table name (default: "block", env: TABLE)
+  --table <string>         Clickhouse table name (default: "blocks", env: TABLE)
   --max-limit <number>     Maximum LIMIT queries (default: 500, env: MAX_LIMIT)
   -h, --help               display help for command
 ```

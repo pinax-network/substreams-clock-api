@@ -1,5 +1,5 @@
-import { DEFAULT_SORT_BY, config } from './config';
-import { parseBlockId, parseLimit, parseTimestamp } from './utils';
+import { DEFAULT_SORT_BY, config } from './config.js';
+import { parseBlockId, parseLimit, parseTimestamp } from './utils.js';
 
 export interface Block {
     block_number: number;

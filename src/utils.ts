@@ -1,4 +1,4 @@
-import { config } from "./config";
+import { config } from "./config.js";
 
 export function parseLimit(limit?: string|null|number) {
     let value = 1; // default 1

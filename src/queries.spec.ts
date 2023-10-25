@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { getBlock, getChain } from "./queries";
+import { getBlock, getChain } from "./queries.js";
 
 test("getBlock", () => {
     expect(getBlock(new URLSearchParams({ chain: "eth", block_number: "123" })))

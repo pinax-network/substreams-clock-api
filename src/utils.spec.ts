@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { parseBlockId, parseLimit, parseTimestamp } from "./utils";
-import { DEFAULT_MAX_LIMIT } from "./config";
+import { parseBlockId, parseLimit, parseTimestamp } from "./utils.js";
+import { DEFAULT_MAX_LIMIT } from "./config.js";
 
 test("parseBlockId", () => {
     expect(parseBlockId()).toBeUndefined();

@@ -1,6 +1,6 @@
 import { createClient } from "@clickhouse/client-web";
-import { ping } from "./ping";
-import { APP_NAME, config } from "../config";
+import { ping } from "./ping.js";
+import { APP_NAME, config } from "../config.js";
 
 const client = createClient({
     ...config,

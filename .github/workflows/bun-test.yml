@@ -9,7 +9,6 @@ on:
 jobs:
   bun-test:
     runs-on: ubuntu-latest
-    environment: dev-test
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -21,23 +20,7 @@ jobs:
         run: |
           bun install
 
-      - name: 'Setup local Clickhouse DB'
-        uses: metrico/clickhouse-server-action@v1.0.0
-
-      - name: 'Insert mock data into Clickhouse DB for testing'
-        run: |
-          curl https://clickhouse.com/ | sh
-          echo "CREATE TABLE IF NOT EXISTS block (block_id FixedString(64),block_number UInt32(),chain LowCardinality(String),timestamp DateTime64(3, 'UTC'),final_block Bool) ENGINE = ReplacingMergeTree PRIMARY KEY (block_id) ORDER BY (block_id, block_number, timestamp); INSERT INTO block (*) VALUES ('054d891671caf4978a4cfc3a13fe323d72cd805c215a14a16ea7417d5add3098', 18394250, 'mainnet', '2023-10-20 21:34:47.000', true) ,('167189cd0f77aa5320806a7150c73cbfc97dfd4418c089ecc33511fca48eb0d6', 18394255, 'testnet', '2023-10-20 21:35:47.000', true) ,('1df538c839f821a20b075dfb35ed6f266435190b99276a6651866407ecdd787e', 18394257, 'mainnet', '2023-10-20 21:36:11.000', false) ,('2b225df082189b69727ef443985edaae23c9edcb172fc3f1a37e17071cb2f827', 18394256, 'testnet', '2023-10-20 21:35:59.000', true) ,('34348c1ae22f33a404ec4ba5fbbe513d0da93172bce483f59ef749a465f50eaf', 18394249, 'mainnet', '2023-10-20 21:34:35.000', false);" > setup.sql
-          ./clickhouse client --queries-file ./setup.sql
-
       - name: 'Run test'
         run: |
           bun pretest
           bun test
-        env:
-          HOSTNAME: ${{ vars.HOSTNAME }}
-          PORT: ${{ vars.PORT }}
-          DB_HOST: ${{ vars.DB_HOST }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ''

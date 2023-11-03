@@ -14,7 +14,7 @@ const TAGS = {
   DOCS: "Documentation",
 } as const;
 
-export const chains = await supportedChainsQuery();
+const chains = await supportedChainsQuery();
 const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
 
 const timestampSchema: SchemaObject = { anyOf: [

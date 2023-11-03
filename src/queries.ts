@@ -1,5 +1,5 @@
 import { DEFAULT_SORT_BY, config } from './config.js';
-import { parseBlockId, parseLimit, parseTimestamp } from './utils.js';
+import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy, parseTimestamp } from './utils.js';
 import { chains } from './fetch/openapi.js';
 
 export interface Block {
@@ -26,16 +26,16 @@ export function getBlock(searchParams: URLSearchParams) {
             ["less", "<"],
         ]
         for ( const [key, operator] of operators ) {
-            const block_number = searchParams.get(`${key}_by_block_number`);
+            const block_number = parseBlockNumber(searchParams.get(`${key}_by_block_number`));
             const timestamp = parseTimestamp(searchParams.get(`${key}_by_timestamp`));
             if (block_number) where.push(`block_number ${operator} ${block_number}`);
             if (timestamp) where.push(`toUnixTimestamp(timestamp) ${operator} ${timestamp}`);
         }
 
         // equals
-        const chain = searchParams.get("chain");
+        const chain = parseChain(searchParams.get("chain"));
         const block_id = parseBlockId(searchParams.get("block_id"));
-        const block_number = searchParams.get('block_number');
+        const block_number = parseBlockNumber(searchParams.get('block_number'));
         const timestamp = parseTimestamp(searchParams.get('timestamp'));
         if (chain) where.push(`chain == '${chain}'`);
         if (block_id) where.push(`block_id == '${block_id}'`);
@@ -47,8 +47,8 @@ export function getBlock(searchParams: URLSearchParams) {
 
         // Sort and Limit
         const limit = parseLimit(searchParams.get("limit"));
-        const sort_by = searchParams.get("sort_by");
-        query += ` ORDER BY block_number ${sort_by ?? DEFAULT_SORT_BY}`
+        const sort_by = parseSortBy(searchParams.get("sort_by"));
+        query += ` ORDER BY block_number ${sort_by}`
         query += ` LIMIT ${limit}`
 
         return query;

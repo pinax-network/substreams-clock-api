@@ -1,5 +1,5 @@
 import { config } from './config.js';
-import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy, parseTimestamp } from './utils.js';
+import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy, parseTimestamp, parseAggregateFunction, parseAggregateColumn} from './utils.js';
 import { supportedChainsQuery } from './fetch/chains.js';
 
 export interface Block {
@@ -66,6 +66,80 @@ export async function getBlock(searchParams: URLSearchParams) {
     } else {
         return createBlockQuery(searchParams);
     }
+}
+
+export function createAggregateQuery(searchParams: URLSearchParams, aggregate_column: string) {
+    // SQL Query
+    let query = `SELECT chain,`;
+
+    // Aggregate Function
+    const aggregate_function = parseAggregateFunction(searchParams.get("aggregate_function"));
+
+    // Aggregate Column
+    if (aggregate_column == undefined) throw new Error("aggregate_column is undefined");
+
+    // for total asset ids we need a subquery
+    if (aggregate_column == "total_uaw") query += ` ${aggregate_function}(${aggregate_column}) FROM (SELECT length(uaw) AS total_uaw`;
+    else query += ` ${aggregate_function}(${aggregate_column})`
+
+    query += ` FROM BlockStats`;
+
+    // close the subquery if needed
+    if (aggregate_column == "total_uaw") query += `)`;
+
+    // alias needed for subqueries so we include it all the time
+    query += ` AS bs`;
+
+    const where = [];
+    // Clickhouse Operators
+    // https://clickhouse.com/docs/en/sql-reference/operators
+    const operators = [
+        ["greater_or_equals", ">="],
+        ["greater", ">"],
+        ["less_or_equals", "<="],
+        ["less", "<"],
+    ]
+    for ( const [key, operator] of operators ) {
+        const block_number = parseBlockNumber(searchParams.get(`${key}_by_block_number`));
+        const timestamp = parseTimestamp(searchParams.get(`${key}_by_timestamp`));
+        if (block_number) where.push(`block_number ${operator} ${block_number}`);
+        if (timestamp) where.push(`toUnixTimestamp(timestamp) ${operator} ${timestamp}`);
+    }
+
+    // equals
+    const block_number = parseBlockNumber(searchParams.get('block_number'));
+    if (block_number) where.push(`block_number == '${block_number}'`);
+
+    const timestamp = parseTimestamp(searchParams.get('timestamp'));
+    if (timestamp) where.push(`toUnixTimestamp(timestamp) == ${timestamp}`);
+
+    const chain = parseChain(searchParams.get('chain'));
+    if (chain) where.push(`chain == '${chain}'`);
+
+    // Join WHERE statements with AND
+    if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
+
+    // Group by chain
+    query += ` GROUP BY chain`;
+    
+    return query;
+}
+
+export async function getAggregate(searchParams: URLSearchParams, aggregate_column: string) {
+    const chain = searchParams.get("chain");
+
+    if (!chain) {
+        const chains = await supportedChainsQuery();
+        let queries = chains.map((chain) => {
+            searchParams.set('chain', chain);
+            return createAggregateQuery(searchParams, aggregate_column);
+        });
+
+        return queries.join(' UNION ALL ');
+    } else {
+        return createAggregateQuery(searchParams, aggregate_column);
+    }
+
 }
 
 export function getChain() {

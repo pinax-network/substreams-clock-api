@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { DEFAULT_SORT_BY, config } from "./config.js";
+import { DEFAULT_SORT_BY, DEFAULT_AGGREGATE_FUNCTION, config } from "./config.js";
+import { logger } from './logger.js';
 
 export function parseBlockId(block_id?: string|null) {
     // Match against hexadecimal string (with or without '0x' prefix)
@@ -67,4 +68,20 @@ export function parseTimestamp(timestamp?: string|null|number) {
         }
     }
     return undefined;
+}
+
+export function parseAggregateFunction(aggregate_function?: string|null) {
+    if (!z.enum(["min", "max", "avg", "sum", "count", "median"]).safeParse(aggregate_function).success) {
+        logger.info("Aggregate function not supported, using default");    
+        return DEFAULT_AGGREGATE_FUNCTION;
+    }
+
+    return aggregate_function;
+}
+
+export function parseAggregateColumn(aggregate_column?: string|null) {
+    if (!z.enum(["transaction_traces", "trace_calls", "total_uaw"]).safeParse(aggregate_column).success) {
+        return undefined;
+    }
+    return aggregate_column;
 }

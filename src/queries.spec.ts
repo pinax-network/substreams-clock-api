@@ -31,10 +31,10 @@ test("getChain", () => {
 
 test("createAggregateQuery", () => {
     expect(createAggregateQuery(new URLSearchParams({aggregate_function: 'count'}), "trace_calls"))
-    .toBe(`SELECT chain, count(trace_calls) FROM BlockStats AS bs GROUP BY chain`);
+    .toBe(`SELECT chain, count(trace_calls) FROM BlockStats GROUP BY chain`);
 
-    expect(createAggregateQuery(new URLSearchParams({aggregate_function: 'max'}), "total_uaw"))
-    .toBe(`SELECT chain, max(total_uaw) FROM (SELECT length(uaw) AS total_uaw FROM BlockStats) AS bs GROUP BY chain`);
+    expect(createAggregateQuery(new URLSearchParams({aggregate_function: 'max'}), "transaction_traces"))
+    .toBe(`SELECT chain, max(transaction_traces) FROM BlockStats GROUP BY chain`);
 });
 
 test("getAggregate", async () => {
@@ -45,6 +45,6 @@ test("getAggregate", async () => {
     let supportedChains = await supportedChainsQuery();
     supportedChains.forEach((chain) => {
         expect(getAggregate(new URLSearchParams({ block_number: "123" }), "trace_calls")).resolves
-        .toContain(`SELECT chain, count(trace_calls) FROM BlockStats AS bs WHERE (block_number == '123' AND chain == '${chain}') GROUP BY chain`);
+        .toContain(`SELECT chain, count(trace_calls) FROM BlockStats WHERE (block_number == '123' AND chain == '${chain}') GROUP BY chain`);
     });
 });

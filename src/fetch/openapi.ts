@@ -2,7 +2,7 @@ import pkg from "../../package.json" assert { type: "json" };
 
 import { OpenApiBuilder, SchemaObject, ExampleObject, ParameterObject } from "openapi3-ts/oas31";
 import { config } from "../config.js";
-import { getBlock, getAggregate } from "../queries.js";
+import { getBlock, getAggregate, getDAW } from "../queries.js";
 import { registry } from "../prometheus.js";
 import { makeQuery } from "../clickhouse/makeQuery.js";
 import { supportedChainsQuery } from "./chains.js";
@@ -18,6 +18,7 @@ const chains = await supportedChainsQuery();
 const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
 const trace_calls_example = (await makeQuery(await getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "trace_calls"))).data;
 const transaction_traces_example = (await makeQuery(await getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "transaction_traces"))).data;
+const uaw_example = (await makeQuery(await getDAW( new URLSearchParams({chain: "wax", date: "2023-09-06"})))).data;
 
 const timestampSchema: SchemaObject = { anyOf: [
     {type: "number"},
@@ -257,6 +258,40 @@ export default new OpenApiBuilder()
       ],
       responses: {
         200: { description: "Aggregate of sales", content: { "text/plain": { example: transaction_traces_example} } },
+        400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
+      },
+    },
+  })
+  .addPath("/uaw", {
+    get: {
+      tags: [TAGS.USAGE],
+      summary: "Get daily unique active wallets",
+      description: "Get daily unique active wallets filtered by `chain`, `date` or `timestamp`",
+      parameters: [
+        {
+          name: "chain",
+          in: "query",
+          description: "Filter by chain name",
+          required: false,
+          schema: {enum: chains},
+        },
+        {
+          name: "date",
+          description: "Filter by date (ex: 2023-09-06)",
+          in: "query",
+          required: false,
+          schema: { type: "string", format: "date" },
+        },
+        {
+          name: 'last24Hours',
+          description: 'If true, returns last 24 hours',
+          in: 'query',
+          required: false,
+          schema: { type: "boolean" },
+        }
+      ],
+      responses: {
+        200: { description: "Daily active wallets", content: { "text/plain": { example: uaw_example} } },
         400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
       },
     },

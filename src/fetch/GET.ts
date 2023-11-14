@@ -4,6 +4,7 @@ import health from "./health.js";
 import chains from "./chains.js";
 import block from "./block.js";
 import aggregate from "./aggregate.js";
+import uaw from "./uaw.js";
 import * as prometheus from "../prometheus.js";
 import { logger } from "../logger.js";
 import swaggerHtml from "../../swagger/index.html"
@@ -22,6 +23,7 @@ export default async function (req: Request) {
     if ( pathname === "/block" ) return block(req);
     if ( pathname === "/trace_calls" ) return aggregate(req, pathname);
     if ( pathname === "/transaction_traces" ) return aggregate(req, pathname);
+    if ( pathname === "/uaw" ) return uaw(req);
     logger.warn(`Not found: ${pathname}`);
     prometheus.request_error.inc({pathname, status: 404});
     return NotFound;

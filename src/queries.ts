@@ -1,6 +1,7 @@
 import { config } from './config.js';
 import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy, parseTimestamp, parseAggregateFunction, parseAggregateColumn} from './utils.js';
 import { supportedChainsQuery } from './fetch/chains.js';
+import { logger } from './logger.js';
 
 export interface Block {
     block_number: number;
@@ -77,18 +78,9 @@ export function createAggregateQuery(searchParams: URLSearchParams, aggregate_co
 
     // Aggregate Column
     if (aggregate_column == undefined) throw new Error("aggregate_column is undefined");
-
-    // for total asset ids we need a subquery
-    if (aggregate_column == "total_uaw") query += ` ${aggregate_function}(${aggregate_column}) FROM (SELECT length(uaw) AS total_uaw`;
     else query += ` ${aggregate_function}(${aggregate_column})`
 
     query += ` FROM BlockStats`;
-
-    // close the subquery if needed
-    if (aggregate_column == "total_uaw") query += `)`;
-
-    // alias needed for subqueries so we include it all the time
-    query += ` AS bs`;
 
     const where = [];
     // Clickhouse Operators
@@ -140,6 +132,48 @@ export async function getAggregate(searchParams: URLSearchParams, aggregate_colu
         return createAggregateQuery(searchParams, aggregate_column);
     }
 
+}
+
+export function createDAWQuery(searchParams: URLSearchParams) {
+    // SQL Query 
+    let query = `SELECT chain, count(distinct uaw) FROM BlockStats ARRAY JOIN uaw`;
+ 
+    const where = [];
+
+    const date = searchParams.get('date');
+    if (date) where.push(`DATE(timestamp) == '${date}'`);
+
+    if(searchParams.get('last24Hours')) {
+        const time_of_query = new Date('2023-09-06 00:00:00').toISOString().replace('T', ' ').replace('Z', '');
+        where.push(`timestamp BETWEEN  subtractHours(toDateTime64('${time_of_query}', 3, 'UTC'), 24) AND toDateTime64('${time_of_query}', 3, 'UTC')`);
+    }
+    
+    const chain = parseChain(searchParams.get('chain'));
+    if (chain) where.push(`chain == '${chain}'`);
+
+    // Join WHERE statements with AND
+    if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
+ 
+    // Group by chain
+    query += ` GROUP BY chain`;
+     
+    return query;
+}
+
+export async function getDAW(searchParams: URLSearchParams) {
+    const chain = searchParams.get("chain");
+
+    if (!chain) {
+        const chains = await supportedChainsQuery();
+        let queries = chains.map((chain) => {
+            searchParams.set('chain', chain);
+            return createDAWQuery(searchParams);
+        });
+
+        return queries.join(' UNION ALL ');
+    } else {
+        return createDAWQuery(searchParams);
+    }
 }
 
 export function getChain() {

@@ -151,7 +151,7 @@ export function getUAWHistory(searchParams: URLSearchParams) {
  
     const where = [];
 
-    const date_of_query = new Date().setHours(0,0,0,0);
+    const date_of_query = Math.floor(Number(new Date().setHours(0,0,0,0)) / 1000);
     //const test = 1694296800;
 
     const range = parseHistoryRange(searchParams.get('range'));

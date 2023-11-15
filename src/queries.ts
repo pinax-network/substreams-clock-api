@@ -71,7 +71,7 @@ export async function getBlock(searchParams: URLSearchParams) {
     }
 }
 
-export function createAggregateQuery(searchParams: URLSearchParams, aggregate_column: string) {
+export function getAggregate(searchParams: URLSearchParams, aggregate_column: string) {
     // SQL Query
     let query = `SELECT chain,`;
 
@@ -119,27 +119,7 @@ export function createAggregateQuery(searchParams: URLSearchParams, aggregate_co
     return query;
 }
 
-export async function getAggregate(searchParams: URLSearchParams, aggregate_column: string) {
-    const chain = searchParams.get("chain");
-
-    if (!chain) {
-        const chains = await store.chains;
-        if (!chains) {
-            throw new Error("chains is null");
-        }
-        let queries = chains.map((chain) => {
-            searchParams.set('chain', chain);
-            return createAggregateQuery(searchParams, aggregate_column);
-        });
-
-        return queries.join(' UNION ALL ');
-    } else {
-        return createAggregateQuery(searchParams, aggregate_column);
-    }
-
-}
-
-export function createDAWQuery(searchParams: URLSearchParams) {
+export function getDAW(searchParams: URLSearchParams) {
     // SQL Query 
     let query = `SELECT chain, count(distinct uaw) FROM BlockStats ARRAY JOIN uaw`;
  
@@ -148,10 +128,10 @@ export function createDAWQuery(searchParams: URLSearchParams) {
     const date = searchParams.get('date');
     if (date) where.push(`DATE(timestamp) == '${date}'`);
 
-    if(searchParams.get('last24Hours')) {
+    /*if(searchParams.get('last24Hours')) {
         const time_of_query = new Date('2023-09-06 00:00:00').toISOString().replace('T', ' ').replace('Z', '');
         where.push(`timestamp BETWEEN  subtractHours(toDateTime64('${time_of_query}', 3, 'UTC'), 24) AND toDateTime64('${time_of_query}', 3, 'UTC')`);
-    }
+    }*/
     
     const chain = parseChain(searchParams.get('chain'));
     if (chain) where.push(`chain == '${chain}'`);
@@ -163,23 +143,4 @@ export function createDAWQuery(searchParams: URLSearchParams) {
     query += ` GROUP BY chain`;
      
     return query;
-}
-
-export async function getDAW(searchParams: URLSearchParams) {
-    const chain = searchParams.get("chain");
-
-    if (!chain) {
-        const chains = await store.chains;
-        if (!chains) {
-            throw new Error("chains is null");
-        }
-        let queries = chains.map((chain) => {
-            searchParams.set('chain', chain);
-            return createDAWQuery(searchParams);
-        });
-
-        return queries.join(' UNION ALL ');
-    } else {
-        return createDAWQuery(searchParams);
-    }
 }

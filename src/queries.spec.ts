@@ -1,5 +1,5 @@
 import { expect, jest, mock, test } from "bun:test";
-import { createBlockQuery, getBlock, getAggregate, createAggregateQuery } from "./queries.js";
+import { createBlockQuery, getBlock, getAggregate, getDAW } from "./queries.js";
 import { store } from "./clickhouse/stores.js";
 
 // Mock supported chains data to prevent DB query
@@ -28,25 +28,20 @@ test("getBlock", async () => {
     });
 });
 
-test("createAggregateQuery", () => {
-    expect(createAggregateQuery(new URLSearchParams({aggregate_function: 'count'}), "trace_calls"))
-    .toBe(`SELECT chain, count(trace_calls) FROM BlockStats GROUP BY chain`);
-
-    expect(createAggregateQuery(new URLSearchParams({aggregate_function: 'max'}), "transaction_traces"))
-    .toBe(`SELECT chain, max(transaction_traces) FROM BlockStats GROUP BY chain`);
-});
-
 test("getAggregate", async () => {
     const singleChainQuery = new URLSearchParams({ chain: "wax"});
-    expect(getAggregate(singleChainQuery, "trace_calls")).resolves.toBe(createAggregateQuery(singleChainQuery, "trace_calls"));
+    expect(getAggregate(singleChainQuery, "trace_calls"))
+        .toBe(`SELECT chain, count(trace_calls) FROM BlockStats WHERE (chain == 'wax') GROUP BY chain`);
 
-    // Check that if no chain parameter is passed, all chains are included in the selection
-    let supportedChains = await store.chains;
-    if (!supportedChains) {
-        throw new Error("chains is null");
-    }
-    supportedChains.forEach((chain) => {
-        expect(getAggregate(new URLSearchParams({ block_number: "123" }), "trace_calls")).resolves
-        .toContain(`SELECT chain, count(trace_calls) FROM BlockStats WHERE (block_number == '123' AND chain == '${chain}') GROUP BY chain`);
-    });
+    expect(getAggregate(new URLSearchParams(), "transaction_traces"))
+        .toBe(`SELECT chain, count(transaction_traces) FROM BlockStats GROUP BY chain`);
+});
+
+test("getDAW", async () => {
+    const singleChainQuery = new URLSearchParams({ chain: "wax"});
+    expect(getDAW(singleChainQuery))
+        .toBe(`SELECT chain, count(distinct uaw) FROM BlockStats ARRAY JOIN uaw WHERE (chain == 'wax') GROUP BY chain`);
+
+    expect(getDAW(new URLSearchParams({ date: "2023-09-06" })))
+        .toBe(`SELECT chain, count(distinct uaw) FROM BlockStats ARRAY JOIN uaw WHERE (DATE(timestamp) == '2023-09-06') GROUP BY chain`);
 });

@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { DEFAULT_SORT_BY, DEFAULT_AGGREGATE_FUNCTION, config } from "./config.js";
 import { logger } from './logger.js';
+import { store } from "./clickhouse/stores.js";
+import { toText } from './fetch/cors.js';
 
 export function parseBlockId(block_id?: string|null) {
     // Match against hexadecimal string (with or without '0x' prefix)
@@ -84,4 +86,16 @@ export function parseAggregateColumn(aggregate_column?: string|null) {
         return undefined;
     }
     return aggregate_column;
+}
+
+export async function verifyParameters(req: Request) {
+    const url = new URL(req.url);
+    const chain = url.searchParams.get("chain");
+    
+    if(chain && (parseChain(chain) == undefined)) {
+        return toText("Invalid chain name: " + chain, 400);
+    }
+    else if (chain && !(await store.chains)?.includes(chain)) {
+        return toText("Chain not found: " + chain, 404);
+    }
 }

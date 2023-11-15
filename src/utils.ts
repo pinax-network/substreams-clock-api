@@ -1,8 +1,10 @@
-import { z } from 'zod';
+import { string, z } from 'zod';
 import { DEFAULT_SORT_BY, DEFAULT_AGGREGATE_FUNCTION, config } from "./config.js";
 import { logger } from './logger.js';
 import { store } from "./clickhouse/stores.js";
 import { toText } from './fetch/cors.js';
+import { Query } from './clickhouse/makeQuery.js';
+import { UAWHistory } from './queries.js';
 
 export function parseBlockId(block_id?: string|null) {
     // Match against hexadecimal string (with or without '0x' prefix)
@@ -98,4 +100,23 @@ export async function verifyParameters(req: Request) {
     else if (chain && !(await store.chains)?.includes(chain)) {
         return toText("Chain not found: " + chain, 404);
     }
+}
+
+export function parseUAWResponse(data: UAWHistory[]) {
+    const formattedData = {
+        'UAW' : data.map(item => parseInt(item.UAW)),
+        'day' : data.map(item => item.day)
+    }
+    return formattedData;
+}
+
+export function parseHistoryRange(range: string|null|number) {
+    let value = 7;
+    if (range) {
+        if (typeof range === "string") value = parseInt(range);
+        if (typeof range === "number") value = range;
+    }
+    // Must be non-negative number
+    if ( value && value <= 0 ) value = 7;
+    return value;
 }

@@ -1,12 +1,17 @@
 import { store } from './clickhouse/stores.js';
 import { config } from './config.js';
-import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy, parseTimestamp, parseAggregateFunction, parseAggregateColumn} from './utils.js';
+import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy, parseTimestamp, parseAggregateFunction, parseHistoryRange} from './utils.js';
 
 export interface Block {
     block_number: number;
     block_id: string;
     timestamp: string;
     chain: string;
+}
+
+export interface UAWHistory {
+    UAW: string;
+    day: number;
 }
 
 export function createBlockQuery (searchParams: URLSearchParams) {
@@ -119,19 +124,14 @@ export function getAggregate(searchParams: URLSearchParams, aggregate_column: st
     return query;
 }
 
-export function getDAW(searchParams: URLSearchParams) {
+export function getUAWFromDate(searchParams: URLSearchParams) {
     // SQL Query 
     let query = `SELECT chain, count(distinct uaw) FROM BlockStats ARRAY JOIN uaw`;
  
     const where = [];
 
-    const date = searchParams.get('date');
-    if (date) where.push(`DATE(timestamp) == '${date}'`);
-
-    /*if(searchParams.get('last24Hours')) {
-        const time_of_query = new Date('2023-09-06 00:00:00').toISOString().replace('T', ' ').replace('Z', '');
-        where.push(`timestamp BETWEEN  subtractHours(toDateTime64('${time_of_query}', 3, 'UTC'), 24) AND toDateTime64('${time_of_query}', 3, 'UTC')`);
-    }*/
+    const date = parseTimestamp(searchParams.get('date'));
+    if (date) where.push(`toUnixTimestamp(DATE(timestamp)) == toUnixTimestamp(DATE(${date}))`);
     
     const chain = parseChain(searchParams.get('chain'));
     if (chain) where.push(`chain == '${chain}'`);
@@ -141,6 +141,30 @@ export function getDAW(searchParams: URLSearchParams) {
  
     // Group by chain
     query += ` GROUP BY chain`;
+     
+    return query;
+}
+
+export function getUAWHistory(searchParams: URLSearchParams) {
+    // SQL Query 
+    let query = `SELECT count(distinct uaw) as UAW, toUnixTimestamp(DATE(timestamp)) as day FROM BlockStats ARRAY JOIN uaw`;
+ 
+    const where = [];
+
+    const date_of_query = new Date().setHours(0,0,0,0);
+    //const test = 1694296800;
+
+    const range = parseHistoryRange(searchParams.get('range'));
+    where.push(`timestamp BETWEEN ${date_of_query} - 86400 * ${range} AND ${date_of_query}`);
+
+    const chain = parseChain(searchParams.get('chain'));
+    if (chain) where.push(`chain == '${chain}'`);
+
+    // Join WHERE statements with AND
+    if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
+
+    // Group by timestamp
+    query += ` GROUP BY day`;
      
     return query;
 }

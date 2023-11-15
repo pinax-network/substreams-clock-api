@@ -3,9 +3,10 @@ import pkg from "../../package.json" assert { type: "json" };
 import { OpenApiBuilder, SchemaObject, ExampleObject, ParameterObject } from "openapi3-ts/oas31";
 import { config } from "../config.js";
 import { store } from "../clickhouse/stores.js";
-import { getBlock, getAggregate, getDAW } from "../queries.js";
+import { getBlock, getAggregate, getUAWFromDate, getUAWHistory, UAWHistory } from "../queries.js";
 import { registry } from "../prometheus.js";
 import { makeQuery } from "../clickhouse/makeQuery.js";
+import { parseUAWResponse } from "../utils.js";
 
 const TAGS = {
   MONITORING: "Monitoring",
@@ -15,9 +16,10 @@ const TAGS = {
 } as const;
 
 const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
-const trace_calls_example = (await makeQuery(await getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "trace_calls"))).data;
-const transaction_traces_example = (await makeQuery(await getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "transaction_traces"))).data;
-const uaw_example = (await makeQuery(await getDAW( new URLSearchParams({chain: "wax", date: "2023-09-06"})))).data;
+const trace_calls_example = (await makeQuery(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "trace_calls"))).data;
+const transaction_traces_example = (await makeQuery(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "transaction_traces"))).data;
+const uaw_example = (await makeQuery(getUAWFromDate( new URLSearchParams({chain: "wax", date: "2023-09-06"})))).data;
+const history_example = parseUAWResponse((await makeQuery<UAWHistory>(getUAWHistory( new URLSearchParams({chain: "eos", range: "7"})))).data);
 
 const timestampSchema: SchemaObject = { anyOf: [
     {type: "number"},
@@ -29,6 +31,16 @@ const timestampExamples: ExampleObject = {
   unix: { summary: `Unix Timestamp (seconds)` },
   date: { summary: `Full-date notation`, value: '2023-10-18' },
   datetime: { summary: `Date-time notation`, value: '2023-10-18T00:00:00Z'},
+}
+const DateSchema: SchemaObject = { anyOf: [ 
+  {type: "number"},
+  {type: "string", format: "date"},
+  ]
+};
+
+const DateExamples: ExampleObject = {
+  unix: { summary: `Unix Timestamp (seconds)`, value: 1693951200 },
+  date: { summary: `Full-date notation`, value: '2023-09-06' },
 }
 
 export default new OpenApiBuilder()
@@ -263,8 +275,8 @@ export default new OpenApiBuilder()
   .addPath("/uaw", {
     get: {
       tags: [TAGS.USAGE],
-      summary: "Get daily unique active wallets",
-      description: "Get daily unique active wallets filtered by `chain`, `date` or `timestamp`",
+      summary: "Get unique active wallets",
+      description: "Get unique active wallets filtered by `chain` and `date`",
       parameters: [
         {
           name: "chain",
@@ -278,18 +290,39 @@ export default new OpenApiBuilder()
           description: "Filter by date (ex: 2023-09-06)",
           in: "query",
           required: false,
-          schema: { type: "string", format: "date" },
+          schema: DateSchema,
+          examples: DateExamples,
+        },
+      ],
+      responses: {
+        200: { description: "Unique active wallets", content: { "text/plain": { example: uaw_example} } },
+        400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
+      },
+    },
+  })
+  .addPath("/uaw/history", {
+    get: {
+      tags: [TAGS.USAGE],
+      summary: "Get daily unique active wallets",
+      description: "Get daily unique active wallets for previous given number of days filtered by `chain`",
+      parameters: [
+        {
+          name: "chain",
+          in: "query",
+          description: "Filter by chain name",
+          required: false,
+          schema: {enum: await store.chains},
         },
         {
-          name: 'last24Hours',
-          description: 'If true, returns last 24 hours',
-          in: 'query',
+          name: "range",
+          in: "query",
+          description: "Number of days to go back",
           required: false,
-          schema: { type: "boolean" },
+          schema: { type: "number" },
         }
       ],
       responses: {
-        200: { description: "Daily active wallets", content: { "text/plain": { example: uaw_example} } },
+        200: { description: "Daily active wallets", content: { "text/plain": { example: history_example} } },
         400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
       },
     },

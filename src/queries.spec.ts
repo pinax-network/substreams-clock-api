@@ -1,6 +1,6 @@
 import { expect, jest, mock, test } from "bun:test";
-import { createBlockQuery, getBlock, getChain, getAggregate, createAggregateQuery } from "./queries.js";
-import { supportedChainsQuery } from "./fetch/chains.js";
+import { createBlockQuery, getBlock, getAggregate, createAggregateQuery } from "./queries.js";
+import { store } from "./clickhouse/stores.js";
 
 // Mock supported chains data to prevent DB query
 //mock.module("./fetch/chains.ts", () => ({ supportedChainsQuery: jest.fn().mockResolvedValue(["eth", "polygon"]) }));
@@ -18,15 +18,14 @@ test("getBlock", async () => {
     expect(getBlock(singleChainQuery)).resolves.toBe(createBlockQuery(singleChainQuery));
 
     // Check that if no chain parameter is passed, all chains are included in the selection
-    let supportedChains = await supportedChainsQuery();
+    let supportedChains = await store.chains;
+    if (!supportedChains) {
+        throw new Error("chains is null");
+    }
     supportedChains.forEach((chain) => {
         expect(getBlock(new URLSearchParams({ block_number: "123" }))).resolves
         .toContain(`SELECT * FROM blocks WHERE (chain == '${chain}' AND block_number == '123') ORDER BY block_number DESC LIMIT 1`);
     });
-});
-
-test("getChain", () => {
-    expect(getChain()).toBe(`SELECT DISTINCT chain FROM module_hashes`);
 });
 
 test("createAggregateQuery", () => {
@@ -42,7 +41,10 @@ test("getAggregate", async () => {
     expect(getAggregate(singleChainQuery, "trace_calls")).resolves.toBe(createAggregateQuery(singleChainQuery, "trace_calls"));
 
     // Check that if no chain parameter is passed, all chains are included in the selection
-    let supportedChains = await supportedChainsQuery();
+    let supportedChains = await store.chains;
+    if (!supportedChains) {
+        throw new Error("chains is null");
+    }
     supportedChains.forEach((chain) => {
         expect(getAggregate(new URLSearchParams({ block_number: "123" }), "trace_calls")).resolves
         .toContain(`SELECT chain, count(trace_calls) FROM BlockStats WHERE (block_number == '123' AND chain == '${chain}') GROUP BY chain`);

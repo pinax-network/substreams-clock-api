@@ -2,10 +2,10 @@ import pkg from "../../package.json" assert { type: "json" };
 
 import { OpenApiBuilder, SchemaObject, ExampleObject, ParameterObject } from "openapi3-ts/oas31";
 import { config } from "../config.js";
+import { store } from "../clickhouse/stores.js";
 import { getBlock, getAggregate, getDAW } from "../queries.js";
 import { registry } from "../prometheus.js";
 import { makeQuery } from "../clickhouse/makeQuery.js";
-import { supportedChainsQuery } from "./chains.js";
 
 const TAGS = {
   MONITORING: "Monitoring",
@@ -14,7 +14,6 @@ const TAGS = {
   DOCS: "Documentation",
 } as const;
 
-const chains = await supportedChainsQuery();
 const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
 const trace_calls_example = (await makeQuery(await getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "trace_calls"))).data;
 const transaction_traces_example = (await makeQuery(await getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "transaction_traces"))).data;
@@ -50,8 +49,7 @@ export default new OpenApiBuilder()
           description: "Array of chains",
           content: {
             "application/json": {
-              schema: { type: "array" },
-              example: chains,
+              schema: { enum: await store.chains },
             }
           },
         },
@@ -69,7 +67,7 @@ export default new OpenApiBuilder()
           in: "query",
           description: "Filter by chain",
           required: false,
-          schema: {enum: chains},
+          schema: {enum: await store.chains},
         },
         {
           name: "block_number",
@@ -158,7 +156,7 @@ export default new OpenApiBuilder()
           in: "query",
           description: "Filter by chain name",
           required: false,
-          schema: {enum: chains},
+          schema: {enum: await store.chains},
         },
         {
           name: 'timestamp',
@@ -219,7 +217,7 @@ export default new OpenApiBuilder()
           in: "query",
           description: "Filter by chain name",
           required: false,
-          schema: {enum: chains},
+          schema: {enum: await store.chains},
         },
         {
           name: 'timestamp',
@@ -273,7 +271,7 @@ export default new OpenApiBuilder()
           in: "query",
           description: "Filter by chain name",
           required: false,
-          schema: {enum: chains},
+          schema: {enum: await store.chains},
         },
         {
           name: "date",

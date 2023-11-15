@@ -1,7 +1,6 @@
+import { store } from './clickhouse/stores.js';
 import { config } from './config.js';
 import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy, parseTimestamp, parseAggregateFunction, parseAggregateColumn} from './utils.js';
-import { supportedChainsQuery } from './fetch/chains.js';
-import { logger } from './logger.js';
 
 export interface Block {
     block_number: number;
@@ -57,7 +56,10 @@ export async function getBlock(searchParams: URLSearchParams) {
     const chain = searchParams.get("chain");
 
     if (!chain) {
-        const chains = await supportedChainsQuery();
+        const chains = await store.chains;
+        if (!chains) {
+            throw new Error("chains is null");
+        }
         let queries = chains.map((chain) => {
             searchParams.set('chain', chain);
             return createBlockQuery(searchParams);
@@ -121,7 +123,10 @@ export async function getAggregate(searchParams: URLSearchParams, aggregate_colu
     const chain = searchParams.get("chain");
 
     if (!chain) {
-        const chains = await supportedChainsQuery();
+        const chains = await store.chains;
+        if (!chains) {
+            throw new Error("chains is null");
+        }
         let queries = chains.map((chain) => {
             searchParams.set('chain', chain);
             return createAggregateQuery(searchParams, aggregate_column);
@@ -164,7 +169,10 @@ export async function getDAW(searchParams: URLSearchParams) {
     const chain = searchParams.get("chain");
 
     if (!chain) {
-        const chains = await supportedChainsQuery();
+        const chains = await store.chains;
+        if (!chains) {
+            throw new Error("chains is null");
+        }
         let queries = chains.map((chain) => {
             searchParams.set('chain', chain);
             return createDAWQuery(searchParams);
@@ -174,8 +182,4 @@ export async function getDAW(searchParams: URLSearchParams) {
     } else {
         return createDAWQuery(searchParams);
     }
-}
-
-export function getChain() {
-    return `SELECT DISTINCT chain FROM module_hashes`;
 }

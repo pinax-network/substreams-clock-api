@@ -19,7 +19,7 @@ export default async function (req: Request) {
     if ( pathname === "/health" ) return health(req);
     if ( pathname === "/metrics" ) return toText(await registry.metrics());
     if ( pathname === "/openapi" ) return toJSON(openapi);
-    if ( pathname === "/chains" ) return chains(req);
+    if ( pathname === "/chains" ) return chains();
     if ( pathname === "/block" ) return block(req);
     if ( pathname === "/trace_calls" ) return aggregate(req, pathname);
     if ( pathname === "/transaction_traces" ) return aggregate(req, pathname);

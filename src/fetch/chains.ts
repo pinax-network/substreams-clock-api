@@ -1,17 +1,11 @@
-import { makeQuery } from "../clickhouse/makeQuery.js";
 import { logger } from "../logger.js";
+import { store } from "../clickhouse/stores.js";
 import * as prometheus from "../prometheus.js";
-import { getChain } from "../queries.js";
 import { BadRequest, toJSON } from "./cors.js";
 
-export async function supportedChainsQuery() {
-  const response = await makeQuery<{chain: string}>(getChain());
-  return response.data.map((r) => r.chain);
-}
-
-export default async function (req: Request) {
+export default async function () {
   try {
-    const chains = await supportedChainsQuery();
+    const chains = await store.chains;
     return toJSON(chains);
   } catch (e: any) {
     logger.error(e);

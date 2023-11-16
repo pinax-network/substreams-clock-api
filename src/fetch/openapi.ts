@@ -2,10 +2,11 @@ import pkg from "../../package.json" assert { type: "json" };
 
 import { OpenApiBuilder, SchemaObject, ExampleObject, ParameterObject } from "openapi3-ts/oas31";
 import { config } from "../config.js";
-import { getBlock } from "../queries.js";
+import { store } from "../clickhouse/stores.js";
+import { getBlock, getAggregate, getUAWFromDate, getUAWHistory, UAWHistory } from "../queries.js";
 import { registry } from "../prometheus.js";
 import { makeQuery } from "../clickhouse/makeQuery.js";
-import { supportedChainsQuery } from "./chains.js";
+import { parseUAWResponse } from "../utils.js";
 
 const TAGS = {
   MONITORING: "Monitoring",
@@ -14,8 +15,11 @@ const TAGS = {
   DOCS: "Documentation",
 } as const;
 
-const chains = await supportedChainsQuery();
 const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
+const trace_calls_example = (await makeQuery(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "trace_calls"))).data;
+const transaction_traces_example = (await makeQuery(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "transaction_traces"))).data;
+const uaw_example = (await makeQuery(getUAWFromDate( new URLSearchParams({chain: "wax", date: "2023-09-06"})))).data;
+const history_example = parseUAWResponse((await makeQuery<UAWHistory>(getUAWHistory( new URLSearchParams({chain: "eos", range: "7"})))).data);
 
 const timestampSchema: SchemaObject = { anyOf: [
     {type: "number"},
@@ -27,6 +31,16 @@ const timestampExamples: ExampleObject = {
   unix: { summary: `Unix Timestamp (seconds)` },
   date: { summary: `Full-date notation`, value: '2023-10-18' },
   datetime: { summary: `Date-time notation`, value: '2023-10-18T00:00:00Z'},
+}
+const DateSchema: SchemaObject = { anyOf: [ 
+  {type: "number"},
+  {type: "string", format: "date"},
+  ]
+};
+
+const DateExamples: ExampleObject = {
+  unix: { summary: `Unix Timestamp (seconds)`, value: 1693951200 },
+  date: { summary: `Full-date notation`, value: '2023-09-06' },
 }
 
 export default new OpenApiBuilder()
@@ -47,8 +61,7 @@ export default new OpenApiBuilder()
           description: "Array of chains",
           content: {
             "application/json": {
-              schema: { type: "array" },
-              example: chains,
+              schema: { enum: await store.chains },
             }
           },
         },
@@ -66,7 +79,7 @@ export default new OpenApiBuilder()
           in: "query",
           description: "Filter by chain",
           required: false,
-          schema: {enum: chains},
+          schema: {enum: await store.chains},
         },
         {
           name: "block_number",
@@ -134,6 +147,183 @@ export default new OpenApiBuilder()
       responses: {
         200: { description: "Array of blocks", content: { "application/json": { example: block_example, schema: { type: "array" } } } },
         400: { description: "Bad request" },
+      },
+    },
+  })
+  .addPath("/trace_calls", {
+    get: {
+      tags: [TAGS.USAGE],
+      summary: "Get aggregate of trace_calls",
+      description: "Get aggregate of trace_calls filtered by `chain`, `timestamp` or `block_number`",
+      parameters: [
+        {
+          name: "aggregate_function",
+          in: "query",
+          description: "Aggregate function",
+          required: false,
+          schema: {enum: ['count', 'min', 'max', 'sum', 'avg', 'median'] },
+        },
+        {
+          name: "chain",
+          in: "query",
+          description: "Filter by chain name",
+          required: false,
+          schema: {enum: await store.chains},
+        },
+        {
+          name: 'timestamp',
+          in: 'query',
+          description: 'Filter by exact timestamp',
+          required: false,
+          schema: timestampSchema,
+          examples: timestampExamples,
+        },
+        {
+          name: "block_number",
+          description: "Filter by Block number (ex: 18399498)",
+          in: "query",
+          required: false,
+          schema: { type: "number" },
+        },
+        ...["greater_or_equals_by_timestamp", "greater_by_timestamp", "less_or_equals_by_timestamp", "less_by_timestamp"].map(name => {
+          return {
+            name,
+            in: "query",
+            description: "Filter " + name.replace(/_/g, " "),
+            required: false,
+            schema: timestampSchema,
+            examples: timestampExamples,
+          } as ParameterObject
+        }),
+        ...["greater_or_equals_by_block_number", "greater_by_block_number", "less_or_equals_by_block_number", "less_by_block_number"].map(name => {
+          return {
+            name,
+            in: "query",
+            description: "Filter " + name.replace(/_/g, " "),
+            required: false,
+            schema: { type: "number" },
+          } as ParameterObject
+        }),
+      ],
+      responses: {
+        200: { description: "Aggregate of sales", content: { "text/plain": { example: trace_calls_example} } },
+        400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
+      },
+    },
+  })
+  .addPath("/transaction_traces", {
+    get: {
+      tags: [TAGS.USAGE],
+      summary: "Get aggregate of transaction_traces",
+      description: "Get aggregate of transaction_traces filtered by `chain`, `timestamp` or `block_number`",
+      parameters: [
+        {
+          name: "aggregate_function",
+          in: "query",
+          description: "Aggregate function",
+          required: false,
+          schema: {enum: ['count', 'min', 'max', 'sum', 'avg', 'median'] },
+        },
+        {
+          name: "chain",
+          in: "query",
+          description: "Filter by chain name",
+          required: false,
+          schema: {enum: await store.chains},
+        },
+        {
+          name: 'timestamp',
+          in: 'query',
+          description: 'Filter by exact timestamp',
+          required: false,
+          schema: timestampSchema,
+          examples: timestampExamples,
+        },
+        {
+          name: "block_number",
+          description: "Filter by Block number (ex: 18399498)",
+          in: "query",
+          required: false,
+          schema: { type: "number" },
+        },
+        ...["greater_or_equals_by_timestamp", "greater_by_timestamp", "less_or_equals_by_timestamp", "less_by_timestamp"].map(name => {
+          return {
+            name,
+            in: "query",
+            description: "Filter " + name.replace(/_/g, " "),
+            required: false,
+            schema: timestampSchema,
+            examples: timestampExamples,
+          } as ParameterObject
+        }),
+        ...["greater_or_equals_by_block_number", "greater_by_block_number", "less_or_equals_by_block_number", "less_by_block_number"].map(name => {
+          return {
+            name,
+            in: "query",
+            description: "Filter " + name.replace(/_/g, " "),
+            required: false,
+            schema: { type: "number" },
+          } as ParameterObject
+        }),
+      ],
+      responses: {
+        200: { description: "Aggregate of sales", content: { "text/plain": { example: transaction_traces_example} } },
+        400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
+      },
+    },
+  })
+  .addPath("/uaw", {
+    get: {
+      tags: [TAGS.USAGE],
+      summary: "Get unique active wallets",
+      description: "Get unique active wallets filtered by `chain` and `date`",
+      parameters: [
+        {
+          name: "chain",
+          in: "query",
+          description: "Filter by chain name",
+          required: false,
+          schema: {enum: await store.chains},
+        },
+        {
+          name: "date",
+          description: "Filter by date (ex: 2023-09-06)",
+          in: "query",
+          required: false,
+          schema: DateSchema,
+          examples: DateExamples,
+        },
+      ],
+      responses: {
+        200: { description: "Unique active wallets", content: { "text/plain": { example: uaw_example} } },
+        400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
+      },
+    },
+  })
+  .addPath("/uaw/history", {
+    get: {
+      tags: [TAGS.USAGE],
+      summary: "Get daily unique active wallets",
+      description: "Get daily unique active wallets for given time range filtered by `chain`",
+      parameters: [
+        {
+          name: "chain",
+          in: "query",
+          description: "Filter by chain name",
+          required: false,
+          schema: {enum: await store.chains},
+        },
+        {
+          name: "range",
+          in: "query",
+          description: "Time range to query (ex: 7d)",
+          required: false,
+          schema: { enum: ["24h", "7d", "30d", "90d", "1y", "all"] },
+        }
+      ],
+      responses: {
+        200: { description: "Daily active wallets", content: { "text/plain": { example: history_example} } },
+        400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
       },
     },
   })

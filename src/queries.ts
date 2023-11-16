@@ -10,6 +10,7 @@ export interface Block {
 }
 
 export interface UAWHistory {
+    chain: string;
     UAW: string;
     day: number;
 }
@@ -147,24 +148,39 @@ export function getUAWFromDate(searchParams: URLSearchParams) {
 
 export function getUAWHistory(searchParams: URLSearchParams) {
     // SQL Query 
-    let query = `SELECT count(distinct uaw) as UAW, toUnixTimestamp(DATE(timestamp)) as day FROM BlockStats ARRAY JOIN uaw`;
+    let query = `SELECT chain, toUnixTimestamp(DATE(timestamp)) as day, count(distinct uaw) as UAW  FROM BlockStats ARRAY JOIN uaw`;
  
     const where = [];
 
+    const datetime_of_query = Math.floor(Number(new Date()) / 1000);
     const date_of_query = Math.floor(Number(new Date().setHours(0,0,0,0)) / 1000);
+    
     //const test = 1694296800;
 
     const range = parseHistoryRange(searchParams.get('range'));
-    where.push(`timestamp BETWEEN ${date_of_query} - 86400 * ${range} AND ${date_of_query}`);
 
+    if (range?.includes('h')) {
+        const hours = parseInt(range);
+        if (hours) where.push(`timestamp BETWEEN ${datetime_of_query} - 3600 * ${hours} AND ${datetime_of_query}`);
+    }
+
+    if (range?.includes('d')) {
+        const days = parseInt(range);
+        if (days) where.push(`timestamp BETWEEN ${date_of_query} - 86400 * ${days} AND ${date_of_query}`);
+    }
+
+    if(range?.includes('y')) {
+        const years = parseInt(range);
+        if (years) where.push(`timestamp BETWEEN ${date_of_query} - 31536000 * ${years} AND ${date_of_query}`);
+    }
+    
     const chain = parseChain(searchParams.get('chain'));
     if (chain) where.push(`chain == '${chain}'`);
 
     // Join WHERE statements with AND
     if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
 
-    // Group by timestamp
-    query += ` GROUP BY day`;
+    query += ` GROUP BY chain, day ORDER BY day ASC`;
      
     return query;
 }

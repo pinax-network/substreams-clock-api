@@ -19,7 +19,7 @@ export default async function (req: Request) {
     return toJSON(formatted);
   } catch (e: any) {
     logger.error(e);
-    prometheus.request_error.inc({pathname: "/uaw/history/", status: 400});
+    prometheus.request_error.inc({pathname: "/uaw/history", status: 400});
     return BadRequest
   }
 }

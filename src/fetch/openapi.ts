@@ -304,7 +304,7 @@ export default new OpenApiBuilder()
     get: {
       tags: [TAGS.USAGE],
       summary: "Get daily unique active wallets",
-      description: "Get daily unique active wallets for previous given number of days filtered by `chain`",
+      description: "Get daily unique active wallets for given time range filtered by `chain`",
       parameters: [
         {
           name: "chain",
@@ -316,9 +316,9 @@ export default new OpenApiBuilder()
         {
           name: "range",
           in: "query",
-          description: "Number of days to go back",
+          description: "Time range to query (ex: 7d)",
           required: false,
-          schema: { type: "number" },
+          schema: { enum: ["24h", "7d", "30d", "90d", "1y", "all"] },
         }
       ],
       responses: {

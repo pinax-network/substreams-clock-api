@@ -3,8 +3,14 @@ import { DEFAULT_SORT_BY, DEFAULT_AGGREGATE_FUNCTION, config } from "./config.js
 import { logger } from './logger.js';
 import { store } from "./clickhouse/stores.js";
 import { toText } from './fetch/cors.js';
-import { Query } from './clickhouse/makeQuery.js';
 import { UAWHistory } from './queries.js';
+
+export interface FormattedUAWHistory {
+    [chain: string]: {
+        UAW: number[];
+        day: number[];
+    };
+}
 
 export function parseBlockId(block_id?: string|null) {
     // Match against hexadecimal string (with or without '0x' prefix)
@@ -103,20 +109,22 @@ export async function verifyParameters(req: Request) {
 }
 
 export function parseUAWResponse(data: UAWHistory[]) {
-    const formattedData = {
-        'UAW' : data.map(item => parseInt(item.UAW)),
-        'day' : data.map(item => item.day)
-    }
-    return formattedData;
+    return data.reduce((formattedData, item) => {
+        const { chain, UAW, day } = item;
+
+        formattedData[chain] = formattedData[chain] || { UAW: [], day: [] };
+
+        formattedData[chain].UAW.push(parseInt(UAW, 10));
+        formattedData[chain].day.push(day);
+
+        return formattedData;
+    }, {} as FormattedUAWHistory);
 }
 
-export function parseHistoryRange(range: string|null|number) {
-    let value = 7;
-    if (range) {
-        if (typeof range === "string") value = parseInt(range);
-        if (typeof range === "number") value = range;
+export function parseHistoryRange(range?: string|null) {
+    if (!z.enum(["24h", "7d", "30d", "90d", "1y", "all"]).safeParse(range).success) {
+        return "7d";
     }
-    // Must be non-negative number
-    if ( value && value <= 0 ) value = 7;
-    return value;
+
+    return range;
 }

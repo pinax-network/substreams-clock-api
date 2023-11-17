@@ -3,7 +3,7 @@ import pkg from "../../package.json" assert { type: "json" };
 import { OpenApiBuilder, SchemaObject, ExampleObject, ParameterObject } from "openapi3-ts/oas31";
 import { config } from "../config.js";
 import { store } from "../clickhouse/stores.js";
-import { getBlock, getAggregate, getUAWFromDate, getUAWHistory, UAWHistory } from "../queries.js";
+import { getBlock, getAggregate, getUAWHistory, UAWHistory } from "../queries.js";
 import { registry } from "../prometheus.js";
 import { makeQuery } from "../clickhouse/makeQuery.js";
 import { parseUAWResponse } from "../utils.js";
@@ -18,8 +18,7 @@ const TAGS = {
 const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
 const trace_calls_example = (await makeQuery(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "trace_calls"))).data;
 const transaction_traces_example = (await makeQuery(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "transaction_traces"))).data;
-const uaw_example = (await makeQuery(getUAWFromDate( new URLSearchParams({chain: "wax", date: "2023-09-06"})))).data;
-const history_example = parseUAWResponse((await makeQuery<UAWHistory>(getUAWHistory( new URLSearchParams({chain: "eos", range: "7"})))).data);
+const uaw_example = parseUAWResponse((await makeQuery<UAWHistory>(getUAWHistory( new URLSearchParams({chain: "eos", range: "24h"})))).data);
 
 const timestampSchema: SchemaObject = { anyOf: [
     {type: "number"},
@@ -275,34 +274,6 @@ export default new OpenApiBuilder()
   .addPath("/uaw", {
     get: {
       tags: [TAGS.USAGE],
-      summary: "Get unique active wallets",
-      description: "Get unique active wallets filtered by `chain` and `date`",
-      parameters: [
-        {
-          name: "chain",
-          in: "query",
-          description: "Filter by chain name",
-          required: false,
-          schema: {enum: await store.chains},
-        },
-        {
-          name: "date",
-          description: "Filter by date (ex: 2023-09-06)",
-          in: "query",
-          required: false,
-          schema: DateSchema,
-          examples: DateExamples,
-        },
-      ],
-      responses: {
-        200: { description: "Unique active wallets", content: { "text/plain": { example: uaw_example} } },
-        400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
-      },
-    },
-  })
-  .addPath("/uaw/history", {
-    get: {
-      tags: [TAGS.USAGE],
       summary: "Get daily unique active wallets",
       description: "Get daily unique active wallets for given time range filtered by `chain`",
       parameters: [
@@ -316,13 +287,13 @@ export default new OpenApiBuilder()
         {
           name: "range",
           in: "query",
-          description: "Time range to query (ex: 7d)",
+          description: "Time range to query (ex: 24h)",
           required: false,
           schema: { enum: ["24h", "7d", "30d", "90d", "1y", "all"] },
         }
       ],
       responses: {
-        200: { description: "Daily active wallets", content: { "text/plain": { example: history_example} } },
+        200: { description: "Daily active wallets", content: { "text/plain": { example: uaw_example} } },
         400: { description: "Bad request", content: { "text/plain": { example: "Bad request", schema: { type: "string" } } }, },
       },
     },

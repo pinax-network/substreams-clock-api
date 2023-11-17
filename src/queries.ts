@@ -85,7 +85,7 @@ export function getAggregate(searchParams: URLSearchParams, aggregate_column: st
     const aggregate_function = parseAggregateFunction(searchParams.get("aggregate_function"));
 
     // Aggregate Column
-    if (aggregate_column == undefined) throw new Error("aggregate_column is undefined");
+    if (aggregate_column == undefined) throw new Error("aggregate_column is undefined"); // shouldn't happen because sent by the endpoint
     else query += ` ${aggregate_function}(${aggregate_column})`
 
     query += ` FROM BlockStats`;
@@ -122,27 +122,6 @@ export function getAggregate(searchParams: URLSearchParams, aggregate_column: st
     // Group by chain
     query += ` GROUP BY chain`;
     
-    return query;
-}
-
-export function getUAWFromDate(searchParams: URLSearchParams) {
-    // SQL Query 
-    let query = `SELECT chain, count(distinct uaw) FROM BlockStats ARRAY JOIN uaw`;
- 
-    const where = [];
-
-    const date = parseTimestamp(searchParams.get('date'));
-    if (date) where.push(`toUnixTimestamp(DATE(timestamp)) == toUnixTimestamp(DATE(${date}))`);
-    
-    const chain = parseChain(searchParams.get('chain'));
-    if (chain) where.push(`chain == '${chain}'`);
-
-    // Join WHERE statements with AND
-    if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
- 
-    // Group by chain
-    query += ` GROUP BY chain`;
-     
     return query;
 }
 

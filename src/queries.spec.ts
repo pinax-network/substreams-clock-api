@@ -1,5 +1,5 @@
 import { expect, jest, mock, test } from "bun:test";
-import { createBlockQuery, getBlock, getAggregate, getUAWFromDate, getUAWHistory } from "./queries.js";
+import { createBlockQuery, getBlock, getAggregate, getUAWHistory } from "./queries.js";
 import { store } from "./clickhouse/stores.js";
 
 // Mock supported chains data to prevent DB query
@@ -35,15 +35,6 @@ test("getAggregate", async () => {
 
     expect(getAggregate(new URLSearchParams(), "transaction_traces"))
         .toBe(`SELECT chain, count(transaction_traces) FROM BlockStats GROUP BY chain`);
-});
-
-test("getUAWFromDate", async () => {
-    const singleChainQuery = new URLSearchParams({ chain: "wax", date: "2023-09-06" });
-    expect(getUAWFromDate(singleChainQuery))
-        .toBe(`SELECT chain, count(distinct uaw) FROM BlockStats ARRAY JOIN uaw WHERE (toUnixTimestamp(DATE(timestamp)) == toUnixTimestamp(DATE(1693958400)) AND chain == 'wax') GROUP BY chain`);
-
-    expect(getUAWFromDate(new URLSearchParams({ date: "2023-09-06" })))
-        .toBe(`SELECT chain, count(distinct uaw) FROM BlockStats ARRAY JOIN uaw WHERE (toUnixTimestamp(DATE(timestamp)) == toUnixTimestamp(DATE(1693958400))) GROUP BY chain`);
 });
 
 test("getUAWHistory", async () => {

@@ -1,6 +1,5 @@
-import { string, z } from 'zod';
-import { DEFAULT_SORT_BY, DEFAULT_AGGREGATE_FUNCTION, config } from "./config.js";
-import { logger } from './logger.js';
+import { z } from 'zod';
+import { DEFAULT_SORT_BY, config } from "./config.js";
 import { store } from "./clickhouse/stores.js";
 import { toText } from './fetch/cors.js';
 import { UAWHistory } from './queries.js';
@@ -81,30 +80,42 @@ export function parseTimestamp(timestamp?: string|null|number) {
 }
 
 export function parseAggregateFunction(aggregate_function?: string|null) {
-    if (!z.enum(["min", "max", "avg", "sum", "count", "median"]).safeParse(aggregate_function).success) {
-        logger.info("Aggregate function not supported, using default");    
-        return DEFAULT_AGGREGATE_FUNCTION;
+    if (aggregate_function == undefined || aggregate_function == null || aggregate_function == '') return "count";
+    else if (!z.enum(["min", "max", "avg", "sum", "count", "median"]).safeParse(aggregate_function).success) {
+        return undefined;
     }
 
     return aggregate_function;
 }
 
-export function parseAggregateColumn(aggregate_column?: string|null) {
-    if (!z.enum(["transaction_traces", "trace_calls", "total_uaw"]).safeParse(aggregate_column).success) {
+export function parseHistoryRange(range?: string|null) {
+    if (range == undefined || range == '') return "24h";
+    if (!z.enum(["24h", "7d", "30d", "90d", "1y", "all"]).safeParse(range).success) {
         return undefined;
     }
-    return aggregate_column;
+
+    return range;
 }
 
 export async function verifyParameters(req: Request) {
     const url = new URL(req.url);
+    // chain
     const chain = url.searchParams.get("chain");
-    
     if(chain && (parseChain(chain) == undefined)) {
         return toText("Invalid chain name: " + chain, 400);
     }
     else if (chain && !(await store.chains)?.includes(chain)) {
         return toText("Chain not found: " + chain, 404);
+    }
+    // range
+    const range = url.searchParams.get("range");
+    if(range && (parseHistoryRange(range) == undefined)) {
+        return toText("Invalid time range: " + range, 400);
+    }
+    // aggregate_function
+    const aggregate_function = url.searchParams.get("aggregate_function");
+    if(aggregate_function && (parseAggregateFunction(aggregate_function) == undefined)) {
+        return toText("Invalid aggregate function: " + aggregate_function, 400);
     }
 }
 
@@ -119,12 +130,4 @@ export function parseUAWResponse(data: UAWHistory[]) {
 
         return formattedData;
     }, {} as FormattedUAWHistory);
-}
-
-export function parseHistoryRange(range?: string|null) {
-    if (!z.enum(["24h", "7d", "30d", "90d", "1y", "all"]).safeParse(range).success) {
-        return "7d";
-    }
-
-    return range;
 }

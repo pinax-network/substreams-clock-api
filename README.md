@@ -12,8 +12,7 @@
 | GET `/block`                              | Get block by `block_number`, `block_id` or `timestamp`
 | GET `/trace_calls`                        | Get aggregate of trace_calls filtered by `chain`, `timestamp` or `block_number`
 | GET `/transaction_traces`                 | Get aggregate of transaction_traces filtered by `chain`, `timestamp` or `block_number`
-| GET `/uaw`                                | Get unique active wallets filtered by `chain` and `date`
-| GET `/uaw/history`                        | Get daily unique active wallets for previous given number of days filtered by `chain`
+| GET `/uaw`                                | Get daily unique active wallets for given time range filtered by `chain`
 | GET `/health`                             | Health check
 | GET `/metrics`                            | Prometheus metrics
 | GET `/openapi`                            | [OpenAPI v3 JSON](https://spec.openapis.org/oas/v3.0.0)

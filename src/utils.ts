@@ -2,12 +2,18 @@ import { z } from 'zod';
 import { DEFAULT_SORT_BY, config } from "./config.js";
 import { store } from "./clickhouse/stores.js";
 import { toText } from './fetch/cors.js';
-import { UAWHistory } from './queries.js';
+import { HistoryData } from './queries.js';
 
 export interface FormattedUAWHistory {
     [chain: string]: {
         UAW: number[];
         day: number[];
+    };
+}
+
+export interface FormattedHistory {
+    [chain: string]: {
+        [field: string]: number[]; 
     };
 }
 
@@ -79,13 +85,17 @@ export function parseTimestamp(timestamp?: string|null|number) {
     return undefined;
 }
 
-export function parseAggregateFunction(aggregate_function?: string|null) {
-    if (aggregate_function == undefined || aggregate_function == null || aggregate_function == '') return "count";
-    else if (!z.enum(["min", "max", "avg", "sum", "count", "median"]).safeParse(aggregate_function).success) {
-        return undefined;
+export function parseAggregateFunctions(aggregate_functions?: string[]|null) {
+    if (!aggregate_functions || !Array.isArray(aggregate_functions) || aggregate_functions.length === 0) {
+        return [ "count" ];
+    }
+    for (let i = 0; i < aggregate_functions.length; i++) {
+        if (!z.enum(["min", "max", "avg", "sum", "count", "median"]).safeParse(aggregate_functions[i]).success) {
+            return undefined;
+        }
     }
 
-    return aggregate_function;
+    return aggregate_functions;
 }
 
 export function parseHistoryRange(range?: string|null) {
@@ -112,22 +122,27 @@ export async function verifyParameters(req: Request) {
     if(range && (parseHistoryRange(range) == undefined)) {
         return toText("Invalid time range: " + range, 400);
     }
-    // aggregate_function
-    const aggregate_function = url.searchParams.get("aggregate_function");
-    if(aggregate_function && (parseAggregateFunction(aggregate_function) == undefined)) {
-        return toText("Invalid aggregate function: " + aggregate_function, 400);
+    // aggregate_functions
+    const aggregate_functions = url.searchParams.getAll("aggregate_functions");
+    if(aggregate_functions && (parseAggregateFunctions(aggregate_functions) == undefined)) {
+        return toText("Invalid aggregate function: " + aggregate_functions, 400);
     }
 }
 
-export function parseUAWResponse(data: UAWHistory[]) {
+export function parseHistoryResponse(data: HistoryData[]): FormattedHistory {
     return data.reduce((formattedData, item) => {
-        const { chain, UAW, day } = item;
-
-        formattedData[chain] = formattedData[chain] || { UAW: [], day: [] };
-
-        formattedData[chain].UAW.push(parseInt(UAW, 10));
-        formattedData[chain].day.push(day);
-
-        return formattedData;
-    }, {} as FormattedUAWHistory);
+      const chain = item['chain'] as string;
+  
+      formattedData[chain] = formattedData[chain] || {};
+  
+      Object.entries(item).forEach(([field, value]) => {
+        // Skip the 'chain' field in the aggregation
+        if (field !== 'chain') {
+          formattedData[chain][field] = formattedData[chain][field] || [];
+          formattedData[chain][field].push(Number(value));
+        }
+      });
+  
+      return formattedData;
+    }, {} as FormattedHistory);
 }

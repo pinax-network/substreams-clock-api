@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy,
-     parseTimestamp, parseAggregateFunction, parseHistoryRange } from "./utils.js";
+     parseTimestamp, parseAggregateFunctions, parseHistoryRange } from "./utils.js";
 import { DEFAULT_MAX_LIMIT, DEFAULT_SORT_BY } from "./config.js";
 
 test("parseBlockId", () => {
@@ -67,15 +67,12 @@ test("parseTimestamp", () => {
     expect(() => parseTimestamp("10")).toThrow("Invalid timestamp");
 });
 
-test("parseAggregateFunction", () => {
-    expect(parseAggregateFunction()).toBe("count");
-    expect(parseAggregateFunction(null)).toBe("count");
-    expect(parseAggregateFunction("invalid")).toBeUndefined();
-    expect(parseAggregateFunction("count")).toBe("count");
-    expect(parseAggregateFunction("sum")).toBe("sum");
-    expect(parseAggregateFunction("avg")).toBe("avg");
-    expect(parseAggregateFunction("min")).toBe("min");
-    expect(parseAggregateFunction("max")).toBe("max");
+test("parseAggregateFunctions", () => {
+    expect(parseAggregateFunctions()).toEqual(["count"]);
+    expect(parseAggregateFunctions(null)).toEqual(["count"]);
+    expect(parseAggregateFunctions(["invalid"])).toBeUndefined();
+    expect(parseAggregateFunctions(["count"])).toEqual(["count"]);
+    expect(parseAggregateFunctions(["max","min"])).toEqual(["max", "min"]);
 });
 
 test("parseHistoryRange", () => {

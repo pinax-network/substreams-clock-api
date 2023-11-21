@@ -29,12 +29,13 @@ test("getBlock", async () => {
 });
 
 test("getAggregate", async () => {
-    const singleChainQuery = new URLSearchParams({ chain: "wax"});
-    expect(getAggregate(singleChainQuery, "trace_calls"))
-        .toBe(`SELECT chain, count(trace_calls) FROM BlockStats WHERE (chain == 'wax') GROUP BY chain`);
+    const date_of_query = Math.floor(Number(new Date().setHours(0,0,0,0)) / 1000);
+    const datetime_of_query = Math.floor(Number(new Date()) / 1000);
+    expect(getAggregate(new URLSearchParams({ chain: "wax" }), "trace_calls"))
+        .toBe(`SELECT chain, toUnixTimestamp(DATE(timestamp)) as day, count(trace_calls) FROM BlockStats WHERE (timestamp BETWEEN ${datetime_of_query} - 3600 * 24 AND ${datetime_of_query} AND chain == 'wax') GROUP BY chain, day ORDER BY day ASC`);
 
-    expect(getAggregate(new URLSearchParams(), "transaction_traces"))
-        .toBe(`SELECT chain, count(transaction_traces) FROM BlockStats GROUP BY chain`);
+    expect(getAggregate(new URLSearchParams({ range: "7d"}), "transaction_traces"))
+        .toBe(`SELECT chain, toUnixTimestamp(DATE(timestamp)) as day, count(transaction_traces) FROM BlockStats WHERE (timestamp BETWEEN ${date_of_query} - 86400 * 7 AND ${date_of_query}) GROUP BY chain, day ORDER BY day ASC`);
 });
 
 test("getUAWHistory", async () => {

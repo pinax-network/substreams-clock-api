@@ -10,8 +10,8 @@
 |-------------------------------------------|-----------------------|
 | GET `/chains`                             | Available `chains`
 | GET `/block`                              | Get block by `block_number`, `block_id` or `timestamp`
-| GET `/trace_calls`                        | Get aggregate of trace_calls filtered by `chain`, `timestamp` or `block_number`
-| GET `/transaction_traces`                 | Get aggregate of transaction_traces filtered by `chain`, `timestamp` or `block_number`
+| GET `/trace_calls`                        | Get aggregate of trace_calls for given time range filtered by `chain` or `block_number`
+| GET `/transaction_traces`                 | Get aggregate of transaction_traces for given time range filtered by `chain` or `block_number`
 | GET `/uaw`                                | Get daily unique active wallets for given time range filtered by `chain`
 | GET `/health`                             | Health check
 | GET `/metrics`                            | Prometheus metrics

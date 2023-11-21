@@ -2,19 +2,13 @@ import { z } from 'zod';
 import { DEFAULT_SORT_BY, config } from "./config.js";
 import { store } from "./clickhouse/stores.js";
 import { toText } from './fetch/cors.js';
-import { HistoryData } from './queries.js';
+import { NormalizedHistoryData } from './queries.js';
 
-export interface FormattedUAWHistory {
-    [chain: string]: {
-        UAW: number[];
-        day: number[];
-    };
-}
-
-export interface FormattedHistory {
-    [chain: string]: {
-        [field: string]: number[]; 
-    };
+export interface NormalizedHistoryFormat {
+    network: string;
+    values: number[];
+    timestamps: number[];
+    interval: number;   
 }
 
 export function parseBlockId(block_id?: string|null) {
@@ -85,17 +79,12 @@ export function parseTimestamp(timestamp?: string|null|number) {
     return undefined;
 }
 
-export function parseAggregateFunctions(aggregate_functions?: string[]|null) {
-    if (!aggregate_functions || !Array.isArray(aggregate_functions) || aggregate_functions.length === 0) {
-        return [ "count" ];
+export function parseAggregateFunction(aggregate_function?: string|null) {
+    if (aggregate_function == undefined || aggregate_function == null || aggregate_function == '') return "sum";
+    else if (!z.enum(["min", "max", "avg", "sum", "count", "median"]).safeParse(aggregate_function).success) {
+        return undefined;
     }
-    for (let i = 0; i < aggregate_functions.length; i++) {
-        if (!z.enum(["min", "max", "avg", "sum", "count", "median"]).safeParse(aggregate_functions[i]).success) {
-            return undefined;
-        }
-    }
-
-    return aggregate_functions;
+    return aggregate_function;
 }
 
 export function parseHistoryRange(range?: string|null) {
@@ -103,8 +92,9 @@ export function parseHistoryRange(range?: string|null) {
     if (!z.enum(["24h", "7d", "30d", "90d", "1y", "all"]).safeParse(range).success) {
         return undefined;
     }
+    //let interval = range.includes("h") ? 3600 : 86400;
 
-    return range;
+    return  range;
 }
 
 export async function verifyParameters(req: Request) {
@@ -123,26 +113,35 @@ export async function verifyParameters(req: Request) {
         return toText("Invalid time range: " + range, 400);
     }
     // aggregate_functions
-    const aggregate_functions = url.searchParams.getAll("aggregate_functions");
-    if(aggregate_functions && (parseAggregateFunctions(aggregate_functions) == undefined)) {
-        return toText("Invalid aggregate function: " + aggregate_functions, 400);
+    const aggregate_function = url.searchParams.get("aggregate_function");
+    if(aggregate_function && (parseAggregateFunction(aggregate_function) == undefined)) {
+        return toText("Invalid aggregate function: " + aggregate_function, 400);
     }
 }
 
-export function parseHistoryResponse(data: HistoryData[]): FormattedHistory {
-    return data.reduce((formattedData, item) => {
-      const chain = item['chain'] as string;
+export function parseNormalized(data: NormalizedHistoryData[], interval: number): NormalizedHistoryFormat[] {
+    const parsedData: Record<string, NormalizedHistoryFormat> = {};
+
+    data.forEach((dataPoint) => {
+      const { chain, value, timestamp } = dataPoint;
   
-      formattedData[chain] = formattedData[chain] || {};
+      if (!parsedData[chain]) {
+        parsedData[chain] = {
+          network: chain,
+          values: [],
+          timestamps: [],
+          interval: interval,
+        };
+      }
+      // if value is string parseInt it
+      if (typeof value === "string") {
+            parsedData[chain].values.push(parseInt(value));
+      } else {
+            parsedData[chain].values.push(value);
+      }
+      parsedData[chain].timestamps.push(timestamp);
+
+    });
   
-      Object.entries(item).forEach(([field, value]) => {
-        // Skip the 'chain' field in the aggregation
-        if (field !== 'chain') {
-          formattedData[chain][field] = formattedData[chain][field] || [];
-          formattedData[chain][field].push(Number(value));
-        }
-      });
-  
-      return formattedData;
-    }, {} as FormattedHistory);
+    return Object.values(parsedData);
 }

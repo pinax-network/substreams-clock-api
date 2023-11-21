@@ -3,10 +3,10 @@ import pkg from "../../package.json" assert { type: "json" };
 import { OpenApiBuilder, SchemaObject, ExampleObject, ParameterObject } from "openapi3-ts/oas31";
 import { config } from "../config.js";
 import { store } from "../clickhouse/stores.js";
-import { getBlock, getAggregate, getUAWHistory, HistoryData } from "../queries.js";
+import { getBlock, getAggregate, NormalizedHistoryData } from "../queries.js";
 import { registry } from "../prometheus.js";
 import { makeQuery } from "../clickhouse/makeQuery.js";
-import { parseHistoryResponse } from "../utils.js";
+import { parseNormalized } from "../utils.js";
 
 const TAGS = {
   MONITORING: "Monitoring",
@@ -16,9 +16,9 @@ const TAGS = {
 } as const;
 
 const block_example = (await makeQuery(await getBlock( new URLSearchParams({limit: "2"})))).data;
-const trace_calls_example = (await makeQuery(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "trace_calls"))).data;
-const transaction_traces_example = (await makeQuery(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "transaction_traces"))).data;
-const uaw_example = parseHistoryResponse((await makeQuery<HistoryData>(getUAWHistory( new URLSearchParams({chain: "eos", range: "24h"})))).data);
+const trace_calls_example = parseNormalized((await makeQuery<NormalizedHistoryData>(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "trace_calls"))).data, 86400);
+const transaction_traces_example = parseNormalized((await makeQuery<NormalizedHistoryData>(getAggregate( new URLSearchParams({aggregate_function: "count", chain: "wax"}), "transaction_traces"))).data, 86400);
+const uaw_example = parseNormalized((await makeQuery<NormalizedHistoryData>(getAggregate( new URLSearchParams({chain: "eos", range: "24h"}), "uaw"))).data, 86400);
 
 const timestampSchema: SchemaObject = { anyOf: [
     {type: "number"},
@@ -156,15 +156,11 @@ export default new OpenApiBuilder()
       description: "Get aggregate of trace_calls for given time range filtered by `chain` or `block_number`",
       parameters: [
         {
-          name: "aggregate_functions",
+          name: "aggregate_function",
           in: "query",
-          description: "Aggregate functions",
+          description: "Aggregate function",
           required: false,
-          schema: 
-          {
-            type: "array",
-            items:{ type: "string", enum: ['count', 'min', 'max', 'sum', 'avg', 'median'] }
-          },
+          schema: {enum: ['count', 'min', 'max', 'sum', 'avg', 'median'] },
         },
         {
           name: "chain",
@@ -179,23 +175,7 @@ export default new OpenApiBuilder()
           description: "Time range to query (ex: 24h)",
           required: false,
           schema: { enum: ["24h", "7d", "30d", "90d", "1y", "all"] },
-        },
-        {
-          name: "block_number",
-          description: "Filter by Block number (ex: 18399498)",
-          in: "query",
-          required: false,
-          schema: { type: "number" },
-        },
-        ...["greater_or_equals_by_block_number", "greater_by_block_number", "less_or_equals_by_block_number", "less_by_block_number"].map(name => {
-          return {
-            name,
-            in: "query",
-            description: "Filter " + name.replace(/_/g, " "),
-            required: false,
-            schema: { type: "number" },
-          } as ParameterObject
-        }),
+        }
       ],
       responses: {
         200: { description: "Aggregate of sales", content: { "text/plain": { example: trace_calls_example} } },
@@ -210,15 +190,11 @@ export default new OpenApiBuilder()
       description: "Get aggregate of transaction_traces for given time range filtered by `chain` or `block_number`",
       parameters: [
         {
-          name: "aggregate_functions",
+          name: "aggregate_function",
           in: "query",
-          description: "Aggregate functions",
+          description: "Aggregate function",
           required: false,
-          schema: 
-          {
-            type: "array",
-            items:{ type: "string", enum: ['count', 'min', 'max', 'sum', 'avg', 'median'] }
-          },
+          schema: {enum: ['count', 'min', 'max', 'sum', 'avg', 'median'] },
         },
         {
           name: "chain",
@@ -233,23 +209,7 @@ export default new OpenApiBuilder()
           description: "Time range to query (ex: 24h)",
           required: false,
           schema: { enum: ["24h", "7d", "30d", "90d", "1y", "all"] },
-        },
-        {
-          name: "block_number",
-          description: "Filter by Block number (ex: 18399498)",
-          in: "query",
-          required: false,
-          schema: { type: "number" },
-        },
-        ...["greater_or_equals_by_block_number", "greater_by_block_number", "less_or_equals_by_block_number", "less_by_block_number"].map(name => {
-          return {
-            name,
-            in: "query",
-            description: "Filter " + name.replace(/_/g, " "),
-            required: false,
-            schema: { type: "number" },
-          } as ParameterObject
-        }),
+        }
       ],
       responses: {
         200: { description: "Aggregate of sales", content: { "text/plain": { example: transaction_traces_example} } },

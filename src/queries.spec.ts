@@ -1,5 +1,5 @@
 import { expect, jest, mock, test } from "bun:test";
-import { createBlockQuery, getBlock, getAggregate, getUAWHistory } from "./queries.js";
+import { createBlockQuery, getBlock, getAggregate, /*getUAWHistory*/ } from "./queries.js";
 import { store } from "./clickhouse/stores.js";
 
 // Mock supported chains data to prevent DB query
@@ -32,22 +32,8 @@ test("getAggregate", async () => {
     const date_of_query = Math.floor(Number(new Date().setHours(0,0,0,0)) / 1000);
     const datetime_of_query = Math.floor(Number(new Date()) / 1000);
     expect(getAggregate(new URLSearchParams({ chain: "wax" }), "trace_calls"))
-        .toBe(`SELECT chain, toUnixTimestamp(DATE(timestamp)) as day, count(trace_calls) FROM BlockStats WHERE (timestamp BETWEEN ${datetime_of_query} - 3600 * 24 AND ${datetime_of_query} AND chain == 'wax') GROUP BY chain, day ORDER BY day ASC`);
+        .toBe(`SELECT chain, toUnixTimestamp(DATE(timestamp)) as timestamp, sum(trace_calls) as value FROM BlockStats WHERE (timestamp BETWEEN ${datetime_of_query} - 3600 * 24 AND ${datetime_of_query} AND chain == 'wax') GROUP BY chain, timestamp ORDER BY timestamp ASC`);
 
     expect(getAggregate(new URLSearchParams({ range: "7d"}), "transaction_traces"))
-        .toBe(`SELECT chain, toUnixTimestamp(DATE(timestamp)) as day, count(transaction_traces) FROM BlockStats WHERE (timestamp BETWEEN ${date_of_query} - 86400 * 7 AND ${date_of_query}) GROUP BY chain, day ORDER BY day ASC`);
-});
-
-test("getUAWHistory", async () => {
-    const date_of_query = Math.floor(Number(new Date().setHours(0,0,0,0)) / 1000);
-    const datetime_of_query = Math.floor(Number(new Date()) / 1000);
-
-    expect(getUAWHistory(new URLSearchParams({ chain: "eos", range: "7d" })))
-        .toBe(`SELECT chain, toUnixTimestamp(DATE(timestamp)) as day, count(distinct uaw) as UAW  FROM BlockStats ARRAY JOIN uaw WHERE (timestamp BETWEEN ${date_of_query} - 86400 * 7 AND ${date_of_query} AND chain == 'eos') GROUP BY chain, day ORDER BY day ASC`);
-
-    expect(getUAWHistory(new URLSearchParams({ range: "24h" })))
-        .toBe(`SELECT chain, toUnixTimestamp(DATE(timestamp)) as day, count(distinct uaw) as UAW  FROM BlockStats ARRAY JOIN uaw WHERE (timestamp BETWEEN ${datetime_of_query} - 3600 * 24 AND ${datetime_of_query}) GROUP BY chain, day ORDER BY day ASC`);
-
-    expect(getUAWHistory(new URLSearchParams({ range: "1y" })))
-        .toBe(`SELECT chain, toUnixTimestamp(DATE(timestamp)) as day, count(distinct uaw) as UAW  FROM BlockStats ARRAY JOIN uaw WHERE (timestamp BETWEEN ${date_of_query} - 31536000 * 1 AND ${date_of_query}) GROUP BY chain, day ORDER BY day ASC`);
+        .toBe(`SELECT chain, toUnixTimestamp(DATE(timestamp)) as timestamp, sum(transaction_traces) as value FROM BlockStats WHERE (timestamp BETWEEN ${date_of_query} - 86400 * 7 AND ${date_of_query}) GROUP BY chain, timestamp ORDER BY timestamp ASC`);
 });

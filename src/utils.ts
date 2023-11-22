@@ -89,6 +89,7 @@ export function parseAggregateFunction(aggregate_function?: string|null) {
     return aggregate_function;
 }
 
+// same logic from above
 export function parseHistoryRange(range?: string|null) {
     if (!range) return "24h";
     if (!z.enum(["24h", "7d", "30d", "90d", "1y", "all"]).safeParse(range).success) {
@@ -98,6 +99,7 @@ export function parseHistoryRange(range?: string|null) {
     return  range;
 }
 
+// used before running the query to gain time
 export async function verifyParameters(req: Request) {
     const url = new URL(req.url);
     // chain
@@ -120,6 +122,7 @@ export async function verifyParameters(req: Request) {
     }
 }
 
+// parses the db response into normalized format for easier further handling
 export function parseNormalized(data: NormalizedHistoryData[], interval: number): NormalizedHistoryFormat[] {
     const parsedData: Record<string, NormalizedHistoryFormat> = {};
 

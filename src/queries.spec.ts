@@ -1,5 +1,5 @@
 import { expect, jest, mock, test } from "bun:test";
-import { createBlockQuery, getBlock, getAggregate, /*getUAWHistory*/ } from "./queries.js";
+import { createBlockQuery, getBlock, getAggregate } from "./queries.js";
 import { store } from "./clickhouse/stores.js";
 
 // Mock supported chains data to prevent DB query

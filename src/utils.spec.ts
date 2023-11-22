@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy,
      parseTimestamp, parseAggregateFunction, parseHistoryRange } from "./utils.js";
 import { DEFAULT_MAX_LIMIT, DEFAULT_SORT_BY } from "./config.js";
-import { parse } from "querystring";
 
 test("parseBlockId", () => {
     expect(parseBlockId()).toBeUndefined();

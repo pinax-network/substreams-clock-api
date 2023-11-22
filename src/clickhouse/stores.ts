@@ -7,15 +7,15 @@ class ClickhouseStore {
     // Fetch data initially
     this.fetchData();
 
-    // Set up a timer to fetch data periodically (e.g., every 1 hour)
+    // Fetch periodically
     setInterval(() => {
       this.fetchData();
-    }, 10000); // 3600000 milliseconds = 1 hour
+    }, 10000); // in milliseconds
   }
 
   private fetchData() {
     this.ChainsPromise = client
-      .query({ query: "SELECT DISTINCT chain FROM blocks", format: "JSONEachRow" })
+      .query({ query: "SELECT DISTINCT chain FROM module_hashes", format: "JSONEachRow" })
       .then((response) => response.json<Array<{ chain: string }>>())
       .then((chains) => chains.map(({ chain }) => chain))
       .catch(() => []);

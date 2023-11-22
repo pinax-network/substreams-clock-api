@@ -15,7 +15,7 @@ export const DEFAULT_MAX_LIMIT = 500;
 export const DEFAULT_VERBOSE = false;
 export const APP_NAME = pkg.name;
 export const DEFAULT_SORT_BY = "DESC";
-export const DEFAULT_AGGREGATE_FUNCTION = "count";
+export const DEFAULT_AGGREGATE_FUNCTION = "sum";
 
 // parse command line options
 const opts = program

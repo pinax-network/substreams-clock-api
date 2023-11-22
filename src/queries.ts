@@ -9,10 +9,10 @@ export interface Block {
     chain: string;
 }
 
-export interface UAWHistory {
+export interface NormalizedHistoryData {
     chain: string;
-    UAW: string;
-    day: number;
+    value: string;
+    timestamp: number;
 }
 
 export function createBlockQuery (searchParams: URLSearchParams) {
@@ -78,85 +78,21 @@ export async function getBlock(searchParams: URLSearchParams) {
 }
 
 export function getAggregate(searchParams: URLSearchParams, aggregate_column: string) {
-    // SQL Query
-    let query = `SELECT chain,`;
+    // SQL Query 
+    let query = `SELECT chain, toUnixTimestamp(DATE(timestamp)) as timestamp,`;
 
-    // Aggregate Function
     const aggregate_function = parseAggregateFunction(searchParams.get("aggregate_function"));
 
-    // Aggregate Column
-    if (aggregate_column == undefined) throw new Error("aggregate_column is undefined");
-    else query += ` ${aggregate_function}(${aggregate_column})`
-
-    query += ` FROM BlockStats`;
+    if (aggregate_column == undefined) throw new Error("aggregate_column is undefined"); // shouldn't happen because sent by the endpoint
+    else if (aggregate_function == undefined) throw new Error("aggregate_function is undefined"); // shouldn't happen because verified before this function
+    else if (aggregate_column == "uaw") { query+= ` count(distinct ${aggregate_column}) as value FROM BlockStats ARRAY JOIN uaw`}
+    else query += ` ${aggregate_function}(${aggregate_column}) as value FROM BlockStats`;
 
     const where = [];
-    // Clickhouse Operators
-    // https://clickhouse.com/docs/en/sql-reference/operators
-    const operators = [
-        ["greater_or_equals", ">="],
-        ["greater", ">"],
-        ["less_or_equals", "<="],
-        ["less", "<"],
-    ]
-    for ( const [key, operator] of operators ) {
-        const block_number = parseBlockNumber(searchParams.get(`${key}_by_block_number`));
-        const timestamp = parseTimestamp(searchParams.get(`${key}_by_timestamp`));
-        if (block_number) where.push(`block_number ${operator} ${block_number}`);
-        if (timestamp) where.push(`toUnixTimestamp(timestamp) ${operator} ${timestamp}`);
-    }
 
-    // equals
-    const block_number = parseBlockNumber(searchParams.get('block_number'));
-    if (block_number) where.push(`block_number == '${block_number}'`);
-
-    const timestamp = parseTimestamp(searchParams.get('timestamp'));
-    if (timestamp) where.push(`toUnixTimestamp(timestamp) == ${timestamp}`);
-
-    const chain = parseChain(searchParams.get('chain'));
-    if (chain) where.push(`chain == '${chain}'`);
-
-    // Join WHERE statements with AND
-    if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
-
-    // Group by chain
-    query += ` GROUP BY chain`;
-    
-    return query;
-}
-
-export function getUAWFromDate(searchParams: URLSearchParams) {
-    // SQL Query 
-    let query = `SELECT chain, count(distinct uaw) FROM BlockStats ARRAY JOIN uaw`;
- 
-    const where = [];
-
-    const date = parseTimestamp(searchParams.get('date'));
-    if (date) where.push(`toUnixTimestamp(DATE(timestamp)) == toUnixTimestamp(DATE(${date}))`);
-    
-    const chain = parseChain(searchParams.get('chain'));
-    if (chain) where.push(`chain == '${chain}'`);
-
-    // Join WHERE statements with AND
-    if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
- 
-    // Group by chain
-    query += ` GROUP BY chain`;
-     
-    return query;
-}
-
-export function getUAWHistory(searchParams: URLSearchParams) {
-    // SQL Query 
-    let query = `SELECT chain, toUnixTimestamp(DATE(timestamp)) as day, count(distinct uaw) as UAW  FROM BlockStats ARRAY JOIN uaw`;
- 
-    const where = [];
-
+    // Time range from time of query
     const datetime_of_query = Math.floor(Number(new Date()) / 1000);
     const date_of_query = Math.floor(Number(new Date().setHours(0,0,0,0)) / 1000);
-    
-    //const test = 1694296800;
-
     const range = parseHistoryRange(searchParams.get('range'));
 
     if (range?.includes('h')) {
@@ -180,7 +116,7 @@ export function getUAWHistory(searchParams: URLSearchParams) {
     // Join WHERE statements with AND
     if ( where.length ) query += ` WHERE (${where.join(' AND ')})`;
 
-    query += ` GROUP BY chain, day ORDER BY day ASC`;
-     
+    query += ` GROUP BY chain, timestamp ORDER BY timestamp ASC`;
+    
     return query;
 }

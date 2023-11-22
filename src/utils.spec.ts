@@ -1,8 +1,7 @@
 import { expect, test } from "bun:test";
 import { parseBlockId, parseBlockNumber, parseChain, parseLimit, parseSortBy,
-     parseTimestamp, parseAggregateColumn, parseAggregateFunction, parseHistoryRange } from "./utils.js";
+     parseTimestamp, parseAggregateFunction, parseHistoryRange } from "./utils.js";
 import { DEFAULT_MAX_LIMIT, DEFAULT_SORT_BY } from "./config.js";
-import { parse } from "querystring";
 
 test("parseBlockId", () => {
     expect(parseBlockId()).toBeUndefined();
@@ -69,9 +68,9 @@ test("parseTimestamp", () => {
 });
 
 test("parseAggregateFunction", () => {
-    expect(parseAggregateFunction()).toBe("count");
-    expect(parseAggregateFunction(null)).toBe("count");
-    expect(parseAggregateFunction("invalid")).toBe("count");
+    expect(parseAggregateFunction()).toBe("sum");
+    expect(parseAggregateFunction(null)).toBe("sum");
+    expect(parseAggregateFunction("invalid")).toBeUndefined();
     expect(parseAggregateFunction("count")).toBe("count");
     expect(parseAggregateFunction("sum")).toBe("sum");
     expect(parseAggregateFunction("avg")).toBe("avg");
@@ -79,19 +78,10 @@ test("parseAggregateFunction", () => {
     expect(parseAggregateFunction("max")).toBe("max");
 });
 
-test("parseAggregateColumn", () => {
-    expect(parseAggregateColumn()).toBeUndefined();
-    expect(parseAggregateColumn(null)).toBeUndefined();
-    expect(parseAggregateColumn("invalid")).toBeUndefined();
-    expect(parseAggregateColumn("transaction_traces")).toBe("transaction_traces");
-    expect(parseAggregateColumn("trace_calls")).toBe("trace_calls");
-    expect(parseAggregateColumn("total_uaw")).toBe("total_uaw");
-});
-
 test("parseHistoryRange", () => {
-    expect(parseHistoryRange()).toBe("7d");
-    expect(parseHistoryRange(null)).toBe("7d");
-    expect(parseHistoryRange("invalid")).toBe("7d");
+    expect(parseHistoryRange()).toBe("24h");
+    expect(parseHistoryRange(null)).toBe("24h");
+    expect(parseHistoryRange("invalid")).toBeUndefined();
     expect(parseHistoryRange("24h")).toBe("24h");
     expect(parseHistoryRange("7d")).toBe("7d");
     expect(parseHistoryRange("1y")).toBe("1y");

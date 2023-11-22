@@ -153,7 +153,7 @@ export default new OpenApiBuilder()
     get: {
       tags: [TAGS.USAGE],
       summary: "Get aggregate of trace_calls",
-      description: "Get aggregate of trace_calls for given time range filtered by `chain` or `block_number`",
+      description: "Get aggregate of trace_calls for given time range filtered by `chain`",
       parameters: [
         {
           name: "aggregate_function",
@@ -187,7 +187,7 @@ export default new OpenApiBuilder()
     get: {
       tags: [TAGS.USAGE],
       summary: "Get aggregate of transaction_traces",
-      description: "Get aggregate of transaction_traces for given time range filtered by `chain` or `block_number`",
+      description: "Get aggregate of transaction_traces for given time range filtered by `chain`",
       parameters: [
         {
           name: "aggregate_function",

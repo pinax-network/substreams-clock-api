@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DEFAULT_SORT_BY, config } from "./config.js";
+import { DEFAULT_SORT_BY, DEFAULT_AGGREGATE_FUNCTION, config } from "./config.js";
 import { store } from "./clickhouse/stores.js";
 import { toText } from './fetch/cors.js';
 import { NormalizedHistoryData } from './queries.js';
@@ -80,7 +80,9 @@ export function parseTimestamp(timestamp?: string|null|number) {
 }
 
 export function parseAggregateFunction(aggregate_function?: string|null) {
-    if (aggregate_function == undefined || aggregate_function == null || aggregate_function == '') return "sum";
+    // if not defined by user, use default
+    if (!aggregate_function) return DEFAULT_AGGREGATE_FUNCTION;
+    // if defined but not valid, return undefined
     else if (!z.enum(["min", "max", "avg", "sum", "count", "median"]).safeParse(aggregate_function).success) {
         return undefined;
     }
@@ -88,11 +90,10 @@ export function parseAggregateFunction(aggregate_function?: string|null) {
 }
 
 export function parseHistoryRange(range?: string|null) {
-    if (range == undefined || range == '') return "24h";
+    if (!range) return "24h";
     if (!z.enum(["24h", "7d", "30d", "90d", "1y", "all"]).safeParse(range).success) {
         return undefined;
     }
-    //let interval = range.includes("h") ? 3600 : 86400;
 
     return  range;
 }

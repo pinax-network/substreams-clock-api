@@ -20,21 +20,31 @@
   "scripts": {
     "start": "bun index.ts",
     "dev": "bun --watch index.ts",
-    "pretest": "bunx tsc --noEmit --skipLibCheck --pretty",
+    "pretest": "tsc --noEmit --skipLibCheck --pretty",
     "test": "bun test --coverage",
     "build": "bun build --compile ./index.ts --outfile substreams-clock-api"
   },
   "dependencies": {
-    "@clickhouse/client-web": "latest",
-    "commander": "latest",
-    "dotenv": "latest",
-    "openapi3-ts": "latest",
-    "prom-client": "latest",
-    "tslog": "latest",
-    "zod": "latest"
+    "@clickhouse/client-web": "0.2.5",
+    "commander": "11.1.0",
+    "dotenv": "16.3.1",
+    "openapi3-ts": "4.1.2",
+    "prom-client": "15.0.0",
+    "tslog": "4.9.2",
+    "zod": "3.22.4"
   },
   "devDependencies": {
-    "bun-types": "latest",
-    "typescript": "latest"
+    "bun-types": "1.0.8",
+    "typescript": "5.2.2"
+  },
+  "packageManager": "bun@1.4.3",
+  "engines": {
+    "bun": ">=1.4.3"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "bun",
+      "onFail": "error"
+    }
   }
 }

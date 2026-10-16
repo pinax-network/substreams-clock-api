@@ -1,0 +1,50 @@
+{
+  "lockfileVersion": 2,
+  "configVersion": 0,
+  "workspaces": {
+    "": {
+      "dependencies": {
+        "@clickhouse/client-web": "0.2.5",
+        "commander": "11.1.0",
+        "dotenv": "16.3.1",
+        "openapi3-ts": "4.1.2",
+        "prom-client": "15.0.0",
+        "tslog": "4.9.2",
+        "zod": "3.22.4",
+      },
+      "devDependencies": {
+        "bun-types": "1.0.8",
+        "typescript": "5.2.2",
+      },
+    },
+  },
+  "packages": {
+    "@clickhouse/client-common": ["@clickhouse/client-common@0.2.5", "", {}, "sha512-V36SiMSbI4XyK3yzXfl5wpSnTEVNvz43l1WhQJZD6/9OMRTk0D8zi6dslR3ya+SCT+a9AXVCxxVBrcC4rAd6gg=="],
+
+    "@clickhouse/client-web": ["@clickhouse/client-web@0.2.5", "", { "dependencies": { "@clickhouse/client-common": "0.2.5" } }, "sha512-pjclXyW35HDqoI/Tpnh5Zm1wsH8FUYZyHSqpuyQ3fmUfpVUhxHlkr9dETH0UZpfxTR7p0OaAlCXyA87LV11GGg=="],
+
+    "@opentelemetry/api": ["@opentelemetry/api@1.6.0", "", {}, "sha512-OWlrQAnWn9577PhVgqjUvMr1pg57Bc4jv0iL4w0PRuOSRvq67rvHW9Ie/dZVMvCzhSCB+UxhcY/PmCmFj33Q+g=="],
+
+    "bintrees": ["bintrees@1.0.2", "", {}, "sha512-VOMgTMwjAaUG580SXn3LacVgjurrbMme7ZZNYGSSV7mmtY6QQRh0Eg3pwIcntQ77DErK1L0NxkbetjcoXzVwKw=="],
+
+    "bun-types": ["bun-types@1.0.8", "", {}, "sha512-2dNB+dBwAcFW7RSd4y5vKycRjouKVklSwPk4EjBKWvcMYUBOqZGGNzV7+b2tfKBG3BeRXnozbnegVKR1azuATg=="],
+
+    "commander": ["commander@11.1.0", "", {}, "sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ=="],
+
+    "dotenv": ["dotenv@16.3.1", "", {}, "sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ=="],
+
+    "openapi3-ts": ["openapi3-ts@4.1.2", "", { "dependencies": { "yaml": "^2.2.2" } }, "sha512-B7gOkwsYMZO7BZXwJzXCuVagym2xhqsrilVvV0dnq2Di4+iLUXKVX9gOK23ZqaAHZOwABXN0QTdW8QnkUTX6DA=="],
+
+    "prom-client": ["prom-client@15.0.0", "", { "dependencies": { "@opentelemetry/api": "^1.4.0", "tdigest": "^0.1.1" } }, "sha512-UocpgIrKyA2TKLVZDSfm8rGkL13C19YrQBAiG3xo3aDFWcHedxRxI3z+cIcucoxpSO0h5lff5iv/SXoxyeopeA=="],
+
+    "tdigest": ["tdigest@0.1.2", "", { "dependencies": { "bintrees": "1.0.2" } }, "sha512-+G0LLgjjo9BZX2MfdvPfH+MKLCrxlXSYec5DaPYP1fe6Iyhf0/fSmJ0bFiZ1F8BT6cGXl2LpltQptzjXKWEkKA=="],
+
+    "tslog": ["tslog@4.9.2", "", {}, "sha512-wBM+LRJoNl34Bdu8mYEFxpvmOUedpNUwMNQB/NcuPIZKwdDde6xLHUev3bBjXQU7gdurX++X/YE7gLH8eXYsiQ=="],
+
+    "typescript": ["typescript@5.2.2", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w=="],
+
+    "yaml": ["yaml@2.3.3", "", {}, "sha512-zw0VAJxgeZ6+++/su5AFoqBbZbrEakwu+X0M5HmcwUiBL7AzcuPKjj5we4xfQLp78LkEMpD0cOnUhmgOVy3KdQ=="],
+
+    "zod": ["zod@3.22.4", "", {}, "sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg=="],
+  }
+}
